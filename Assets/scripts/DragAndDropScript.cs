@@ -10,6 +10,7 @@ public class DragAndDropScript : MonoBehaviour,
     private RectTransform rectTra;
 
     public ObjectScript objectScr;
+    public ScreenBoundriesScript screenBou;
 
     void Start()
     {
@@ -30,7 +31,24 @@ public class DragAndDropScript : MonoBehaviour,
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // TODO: Add logic when drag begins
+        if (Input.GetMouseButton(0) &&
+            !Input.GetMouseButton(1) &&
+            !Input.GetMouseButton(2))
+        {
+            objectScr.lastDragged = null;
+            canvasGro.blocksRaycasts = false;
+            canvasGro.alpha = 0.6f;
+            rectTra.SetAsLastSibling();
+            Vector3 cursorWorldPos = Camera.main.ScreenToWorldPoint(
+                new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenBou.screenPoint.z));
+            rectTra.position = cursorWorldPos;
+
+            screenBou.screenPoint = Camera.main.WorldToScreenPoint(rectTra.localPosition);
+
+            screenBou.offset = rectTra.localPosition - Camera.main.ScreenToWorldPoint(
+                new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenBou.screenPoint.z));
+                
+        }
     }
 
     public void OnDrag(PointerEventData eventData)
