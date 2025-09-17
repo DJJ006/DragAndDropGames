@@ -35,10 +35,15 @@ public class DragAndDropScript : MonoBehaviour,
             !Input.GetMouseButton(1) &&
             !Input.GetMouseButton(2))
         {
-            objectScr.lastDragged = null;
+            
             canvasGro.blocksRaycasts = false;
             canvasGro.alpha = 0.6f;
-            rectTra.SetAsLastSibling();
+            //pēdējais sarakstā
+            //rectTra.SetAsLastSibling();
+            //pirmspēdējais sarakstā
+            int positionIndex = transform.parent.childCount - 1;
+            transform.SetSiblingIndex(positionIndex);
+
             Vector3 cursorWorldPos = Camera.main.ScreenToWorldPoint(
                 new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenBou.screenPoint.z));
             rectTra.position = cursorWorldPos;
@@ -47,7 +52,9 @@ public class DragAndDropScript : MonoBehaviour,
 
             screenBou.offset = rectTra.localPosition - Camera.main.ScreenToWorldPoint(
                 new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenBou.screenPoint.z));
-                
+
+            objectScr.lastDragged = eventData.pointerDrag;
+
         }
     }
 
@@ -68,7 +75,7 @@ public class DragAndDropScript : MonoBehaviour,
         if (Input.GetMouseButtonUp(0))
             
         {
-            objectScr.lastDragged = eventData.pointerDrag;
+            
             canvasGro.blocksRaycasts = true;
             canvasGro.alpha = 1.0f;
 
@@ -78,11 +85,10 @@ public class DragAndDropScript : MonoBehaviour,
                 objectScr.lastDragged = null;
 
             }
-            else
-            {
+            
                 objectScr.rightPlace = false;
             }
 
         }
     }
-}
+
