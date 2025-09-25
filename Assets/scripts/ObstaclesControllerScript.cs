@@ -6,6 +6,24 @@ using UnityEngine.UI;
 
 public class ObstaclesControllerScript : MonoBehaviour
 {
+
+    [Tooltip("List every vehicle tag you want the cloud to catch")]
+    [SerializeField]
+    private string[] vehicleTags = {
+        "Garbage",
+        "Ambulance",
+        "Fire",
+        "School",
+        "b2",
+        "cement",
+        "e46",
+        "e61",
+        "WorkCar",
+        "Police",
+        "Tractor",
+        "Tractor2"
+    };
+
     [HideInInspector]
     public float speed = 1f;
     public float waveAmplitude = 25f;
@@ -128,6 +146,19 @@ public class ObstaclesControllerScript : MonoBehaviour
             rectTransform.anchoredPosition = orginalPosition + UnityEngine.Random.insideUnitCircle * intensity;
             elapsed += Time.deltaTime;
             yield return null;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        // Check if the collided object uses one of your vehicle tags
+        foreach (var t in vehicleTags)
+        {
+            if (other.CompareTag(t))
+            {
+                StartCoroutine(ShrinkAndDestroy(other.gameObject, 0.5f));
+                return;
+            }
         }
     }
 

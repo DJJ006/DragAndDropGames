@@ -16,6 +16,7 @@ TagManager:
   - Police
   - Tractor
   - Tractor2
+  - car
   layers:
   - Default
   - TransparentFX
