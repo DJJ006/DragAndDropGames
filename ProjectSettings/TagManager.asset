@@ -17,6 +17,7 @@ TagManager:
   - Tractor
   - Tractor2
   - car
+  - bomb
   layers:
   - Default
   - TransparentFX

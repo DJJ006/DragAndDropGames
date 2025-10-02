@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -108,7 +108,406 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: Airplain_0
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 1394
+        width: 383
+        height: 216
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a079a596afba1ae43ba37e9c9d8046fd
+      internalID: 1182948086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_1
+      rect:
+        serializedVersion: 2
+        x: 516
+        y: 1404
+        width: 398
+        height: 231
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d1a78467ded5a134ea670382e879138a
+      internalID: -1096982484
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_2
+      rect:
+        serializedVersion: 2
+        x: 1018
+        y: 1393
+        width: 373
+        height: 232
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 181e1f0e106cffe4cbe9d176e2805bdf
+      internalID: -1103088498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_3
+      rect:
+        serializedVersion: 2
+        x: 1450
+        y: 1402
+        width: 506
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 255d0e4455b75584ca1989c58b3e85a0
+      internalID: -1871417621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_4
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 1126
+        width: 407
+        height: 181
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a5a55052c61907446b4484f045279c9c
+      internalID: 504699716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_5
+      rect:
+        serializedVersion: 2
+        x: 582
+        y: 1107
+        width: 374
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 81115f779c7c4e548978575576a19d8e
+      internalID: -1635849210
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_6
+      rect:
+        serializedVersion: 2
+        x: 1068
+        y: 1088
+        width: 428
+        height: 272
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a25f74ad6d2335048a6807f73cb615d7
+      internalID: 194536351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_7
+      rect:
+        serializedVersion: 2
+        x: 1577
+        y: 1098
+        width: 390
+        height: 273
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04f608f28005d4f4281a0808aeba38bd
+      internalID: -363817272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_8
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 698
+        width: 295
+        height: 395
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cbc0c93447f67034a93579d76cf55af5
+      internalID: -1307331108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_9
+      rect:
+        serializedVersion: 2
+        x: 488
+        y: 693
+        width: 398
+        height: 399
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd310d6c1238ac547afea340cfead228
+      internalID: -1849355659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_10
+      rect:
+        serializedVersion: 2
+        x: 1018
+        y: 733
+        width: 457
+        height: 285
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ee95778d07d782942bbabf778b6c455f
+      internalID: 171112788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_11
+      rect:
+        serializedVersion: 2
+        x: 1608
+        y: 756
+        width: 345
+        height: 248
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92cfeb268332e624a907bbe00ccb0d6c
+      internalID: 1153820663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_12
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 422
+        width: 403
+        height: 160
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 690bf0d9c84fcc643a920f2b270c462f
+      internalID: 1429935943
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_13
+      rect:
+        serializedVersion: 2
+        x: 515
+        y: 422
+        width: 299
+        height: 244
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d0a9d8f5304a7f84ea938aac32a37be9
+      internalID: -106616513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_14
+      rect:
+        serializedVersion: 2
+        x: 916
+        y: 422
+        width: 563
+        height: 211
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f05ad40a308c8a44f897246d0899f152
+      internalID: -709920125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_15
+      rect:
+        serializedVersion: 2
+        x: 1551
+        y: 422
+        width: 423
+        height: 248
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e2f4602f10da47d458a3962f00a69fa5
+      internalID: -1187445866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_16
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 38
+        width: 392
+        height: 350
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0679bd4dfb25edf48aee12461b0961bb
+      internalID: -759406706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_17
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 59
+        width: 484
+        height: 315
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 25caca8803bd1794a946cf4f304cf036
+      internalID: 538965547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Airplain_18
+      rect:
+        serializedVersion: 2
+        x: 983
+        y: 76
+        width: 1004
+        height: 281
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92f54218394afb64b968ac0adb9ec97f
+      internalID: -772800788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -119,7 +518,26 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Airplain_0: 1182948086
+      Airplain_1: -1096982484
+      Airplain_10: 171112788
+      Airplain_11: 1153820663
+      Airplain_12: 1429935943
+      Airplain_13: -106616513
+      Airplain_14: -709920125
+      Airplain_15: -1187445866
+      Airplain_16: -759406706
+      Airplain_17: 538965547
+      Airplain_18: -772800788
+      Airplain_2: -1103088498
+      Airplain_3: -1871417621
+      Airplain_4: 504699716
+      Airplain_5: -1635849210
+      Airplain_6: 194536351
+      Airplain_7: -363817272
+      Airplain_8: -1307331108
+      Airplain_9: -1849355659
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

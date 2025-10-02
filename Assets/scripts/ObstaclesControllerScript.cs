@@ -34,6 +34,7 @@ public class ObstaclesControllerScript : MonoBehaviour
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
     private bool isFadingOut = false;
+    private bool isExploding = false;
     private Image image;
     private Color orginalColor;
     void Start()
@@ -73,8 +74,17 @@ public class ObstaclesControllerScript : MonoBehaviour
             StartCoroutine(FadeOutAndDestroy());
         }
 
+        //Ja neko nevelk un kursors pieskaras bumbai
+        if(CompareTag("bomb") && !isExploding && RectTransformUtility.RectangleContainsScreenPoint(rectTransform, 
+            Input.mousePosition, Camera.main))
+
         if(objectScript.drag && !isFadingOut && RectTransformUtility.RectangleContainsScreenPoint(
             rectTransform, Input.mousePosition, Camera.main))
+            {
+                Debug.Log("Obstacle hit by cursor (without draging)");
+                TriggerExplosion();
+            }
+
         {
             Debug.Log("Obstacle hit by drag");
             //.............
@@ -128,9 +138,9 @@ public class ObstaclesControllerScript : MonoBehaviour
         Destroy(target);
     }
 
-    IEnumerator RecoverColor()
+    IEnumerator RecoverColor(float seconds)
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(seconds);
         image.color = orginalColor;
     }
 
@@ -159,6 +169,66 @@ public class ObstaclesControllerScript : MonoBehaviour
                 StartCoroutine(ShrinkAndDestroy(other.gameObject, 0.5f));
                 return;
             }
+        }
+    }
+
+    public void TriggerExplosion()
+    {
+        isExploding = true;
+        objectScript.effects.PlayOneShot(objectScript.audioCli[14], 5f);
+
+        if(TryGetComponent<Animator>(out Animator animator))
+        {
+            animator.SetBool("explode", true);
+        }
+
+        image.color = Color.red;
+        StartCoroutine(RecoverColor(0.3f));
+        StartCoroutine(Vibrate());
+        StartCoroutine(WaitBeforeExplosion());
+    }
+
+    void WaitBeforeExplosion()
+    {
+        float radius = 0;
+        if(TryGetComponent<CircleCollider2D>(out CircleCollider2D circleCollider))
+        {
+            radius = circleCollider.radius * transform.lossyScale.x;
+            ExploadAndDestroyNearbyObjects(radius);
+            yield return new WaitForSeconds(1f);
+            ExploadAndDestroyNearbyObjects(radius);
+            Destroy(gameObject);
+        }
+    }
+
+    void ExploadAndDestroyNearbyObjects(float radius)
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
+
+        foreach (Collider2D hit in hits)
+        {
+            if(hit != null && hit.gameObject != gameObject)
+            {
+                ObstaclesControllerScript obj = hit.GetComponent<ObstaclesControllerScript>();
+                if(obj != null && !obj.isExploding)
+                {
+                    obj.StartToDestroy();
+                }
+            }
+        }
+    }
+
+    public void StartToDestroy()
+    {
+        if (!isFadingOut)
+        {
+            StartCoroutine(FadeOutAndDestroy());
+            isFadingOut = true;
+
+            image.color = Color.cyan;
+            StartCoroutine(RecoverColor(0.5f));
+            StartCoroutine(Vibrate());
+            objectScript.effects.PlayOneShot(objectScript.audioCli[0]);
         }
     }
 
