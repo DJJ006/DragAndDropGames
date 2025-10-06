@@ -2,38 +2,71 @@ using UnityEngine;
 
 public class TransformationScript : MonoBehaviour
 {
-    public ObjectScript objScript;
-
     void Update()
     {
-        if (objScript.lastDragged != null)
+        if (ObjectScript.lastDragged != null)
         {
-            RectTransform rect = objScript.lastDragged.GetComponent<RectTransform>();
-
-          
             if (Input.GetKey(KeyCode.Z))
-                rect.Rotate(0, 0, Time.deltaTime * 45f);
+            {
+                ObjectScript.lastDragged.GetComponent<RectTransform>().transform.Rotate(
+                    0, 0, Time.deltaTime * 15f);
+            }
 
             if (Input.GetKey(KeyCode.X))
-                rect.Rotate(0, 0, -Time.deltaTime * 45f);
+            {
+                ObjectScript.lastDragged.GetComponent<RectTransform>().transform.Rotate(
+                    0, 0, -Time.deltaTime * 15f);
+            }
 
-            Vector3 scale = rect.localScale;
+            if (Input.GetKey(KeyCode.UpArrow))
+            {
+                if (ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.y < 0.9f)
+                {
+                    ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale =
+                        new Vector3(
+                        ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.x,
+                        ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.y + 0.005f,
+                        1f);
+                }
+            }
 
-            // Scale Y
-            if (Input.GetKey(KeyCode.UpArrow) && scale.y < 2f)
-                scale.y += 0.005f;
+            if (Input.GetKey(KeyCode.DownArrow))
+            {
+                if (ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.y > 0.3f)
+                {
+                    ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale =
+                    new Vector3(
+                    ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.x,
+                    ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.y - 0.005f,
+                    1f);
+                }
 
-            if (Input.GetKey(KeyCode.DownArrow) && scale.y > 0.3f)
-                scale.y -= 0.005f;
+            }
 
-            // Scale X
-            if (Input.GetKey(KeyCode.LeftArrow) && scale.x > 0.3f)
-                scale.x -= 0.005f;
+            if (Input.GetKey(KeyCode.LeftArrow))
+            {
+                if (ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.x > 0.3f)
+                {
+                    ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale =
+                        new Vector3(
+                        ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.x - 0.005f,
+                        ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.y,
+                        1f);
+                }
+            }
 
-            if (Input.GetKey(KeyCode.RightArrow) && scale.x < 2f) 
-                scale.x += 0.005f;
+            if (Input.GetKey(KeyCode.RightArrow))
+            {
+                if (ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.x < 0.9f)
+                {
+                    ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale =
+                        new Vector3(
+                        ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.x + 0.005f,
+                        ObjectScript.lastDragged.GetComponent<RectTransform>().transform.localScale.y,
+                        1f);
+                }
+            }
 
-            rect.localScale = scale;
         }
     }
 }
