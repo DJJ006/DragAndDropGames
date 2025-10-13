@@ -79,7 +79,7 @@ public class FlyingObjectsControllerScript : MonoBehaviour
             }
 
             if (CompareTag("bomb"))
-                StartToDestroy(Color.red);
+                StartToDestroy();
             else
                 StartToDestroy();
 
@@ -197,21 +197,31 @@ public class FlyingObjectsControllerScript : MonoBehaviour
 
     IEnumerator ShrinkAndDestroy(GameObject target, float duration)
     {
-        Vector3 orginalScale = target.transform.localScale;
-        Quaternion orginalRotation = target.transform.rotation;
+        Vector3 originalScale = target.transform.localScale;
+        Quaternion originalRotation = target.transform.rotation;
         float t = 0f;
 
         while (t < duration)
         {
             t += Time.deltaTime;
-            target.transform.localScale = Vector3.Lerp(orginalScale, Vector3.zero, t / duration);
+            target.transform.localScale = Vector3.Lerp(originalScale, Vector3.zero, t / duration);
             float angle = Mathf.Lerp(0f, 360f, t / duration);
             target.transform.rotation = Quaternion.Euler(0f, 0f, angle);
-
             yield return null;
         }
+
+        // Ja iznīcinātais ir transportlīdzeklis
+        if (target.CompareTag("Garbage") || target.CompareTag("Ambulance") || target.CompareTag("Fire") ||
+            target.CompareTag("School") || target.CompareTag("b2") || target.CompareTag("cement") ||
+            target.CompareTag("e46") || target.CompareTag("e61") || target.CompareTag("WorkCar") ||
+            target.CompareTag("Police") || target.CompareTag("Tractor") || target.CompareTag("Tractor2"))
+        {
+            FindObjectOfType<GameManager>().OnVehicleDestroyed(target);
+        }
+
         Destroy(target);
     }
+
 
     IEnumerator RecoverColor(float seconds)
     {

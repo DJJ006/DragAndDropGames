@@ -28,72 +28,34 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
                 Debug.Log("X size difference: " + xSizeDiff);
                 Debug.Log("Y size difference: " + ySizeDiff);
 
-                if ((rotDiff <= 5 || (rotDiff >= 355 && rotDiff <= 360)) && (xSizeDiff <= 0.05 && ySizeDiff <= 0.05))
+                if ((rotDiff <= 5 || (rotDiff >= 355 && rotDiff <= 360)) && (xSizeDiff <= 0.1f && ySizeDiff <= 0.1f))
                 {
-                    Debug.Log("Correct place");
+                    Debug.Log("Vehicle placed: " + eventData.pointerDrag.name);
+                    FindObjectOfType<GameManager>().SetVehiclePlaced(eventData.pointerDrag);
 
-                    Debug.Log("Correct place faq!"); 
+                    objScript.rightPlace = true;
+                    RectTransform dragRect = eventData.pointerDrag.GetComponent<RectTransform>();
+                    dragRect.anchoredPosition = GetComponent<RectTransform>().anchoredPosition;
+                    dragRect.localPosition = GetComponent<RectTransform>().localPosition;
+                    dragRect.localScale = GetComponent<RectTransform>().localScale;
 
-                    objScript.rightPlace = true; 
-                    eventData.pointerDrag.GetComponent<RectTransform>().anchoredPosition = GetComponent<RectTransform>().anchoredPosition; 
-                    eventData.pointerDrag.GetComponent<RectTransform>().localPosition = GetComponent<RectTransform>().localPosition; 
-                    eventData.pointerDrag.GetComponent<RectTransform>().localScale = GetComponent<RectTransform>().localScale;
-
+                    // Audio efekti
                     switch (eventData.pointerDrag.tag)
                     {
-                        case "Garbage":
-                            objScript.effects.PlayOneShot(objScript.audioCli[2]);
-                            break;
-
-                        case "Ambulance":
-                            objScript.effects.PlayOneShot(objScript.audioCli[3]);
-                            break;
-
-                        case "Fire":
-                            objScript.effects.PlayOneShot(objScript.audioCli[4]);
-                            break;
-
-                        case "School":
-                            objScript.effects.PlayOneShot(objScript.audioCli[5]);
-                            break;
-
-                        case "b2":
-                            objScript.effects.PlayOneShot(objScript.audioCli[6]);
-                            break;
-
-                        case "cement":
-                            objScript.effects.PlayOneShot(objScript.audioCli[7]);
-                            break;
-
-                        case "e46":
-                            objScript.effects.PlayOneShot(objScript.audioCli[8]); 
-                            break;
-
-                        case "e61":
-                            objScript.effects.PlayOneShot(objScript.audioCli[9]);
-                            break;
-
-                        case "WorkCar":
-                            objScript.effects.PlayOneShot(objScript.audioCli[10]);
-                            break;
-
-                        case "Police":
-                            objScript.effects.PlayOneShot(objScript.audioCli[11]);
-                            break;
-
-                        case "Tractor":
-                            objScript.effects.PlayOneShot(objScript.audioCli[12]);
-                            break;
-
-                        case "Tractor2":
-                            objScript.effects.PlayOneShot(objScript.audioCli[13]);
-                            break;
-
-                        default:
-                            Debug.Log("Unknown tag detected");
-                            break;
-                        }
+                        case "Garbage": objScript.effects.PlayOneShot(objScript.audioCli[2]); break;
+                        case "Ambulance": objScript.effects.PlayOneShot(objScript.audioCli[3]); break;
+                        case "Fire": objScript.effects.PlayOneShot(objScript.audioCli[4]); break;
+                        case "School": objScript.effects.PlayOneShot(objScript.audioCli[5]); break;
+                        case "b2": objScript.effects.PlayOneShot(objScript.audioCli[6]); break;
+                        case "cement": objScript.effects.PlayOneShot(objScript.audioCli[7]); break;
+                        case "e46": objScript.effects.PlayOneShot(objScript.audioCli[8]); break;
+                        case "e61": objScript.effects.PlayOneShot(objScript.audioCli[9]); break;
+                        case "WorkCar": objScript.effects.PlayOneShot(objScript.audioCli[10]); break;
+                        case "Police": objScript.effects.PlayOneShot(objScript.audioCli[11]); break;
+                        case "Tractor": objScript.effects.PlayOneShot(objScript.audioCli[12]); break;
+                        case "Tractor2": objScript.effects.PlayOneShot(objScript.audioCli[13]); break;
                     }
+                }
 
             }
             else
