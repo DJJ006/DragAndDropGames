@@ -9,117 +9,77 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
     private Vector3 placeSiz, vehicleSiz;
     private float xSizeDiff, ySizeDiff;
     public ObjectScript objScript;
+
     public void OnDrop(PointerEventData eventData)
     {
-       if((eventData.pointerDrag != null ) && Input.GetMouseButtonUp(0) && !Input.GetMouseButton(1) && !Input.GetMouseButton(2))
+        if (eventData.pointerDrag == null || !Input.GetMouseButtonUp(0) ||
+            Input.GetMouseButton(1) || Input.GetMouseButton(2)) return;
+
+        RectTransform dragRect = eventData.pointerDrag.GetComponent<RectTransform>();
+
+        // Pareizā vieta
+        if (eventData.pointerDrag.tag.Equals(tag))
         {
-            if(eventData.pointerDrag.tag.Equals(tag))
+            placeZRot = dragRect.eulerAngles.z;
+            vehicleZRot = GetComponent<RectTransform>().eulerAngles.z;
+            rotDiff = Mathf.Abs(placeZRot - vehicleZRot);
+
+            placeSiz = dragRect.localScale;
+            vehicleSiz = GetComponent<RectTransform>().localScale;
+            xSizeDiff = Mathf.Abs(placeSiz.x - vehicleSiz.x);
+            ySizeDiff = Mathf.Abs(placeSiz.y - vehicleSiz.y);
+
+            if ((rotDiff <= 5 || (rotDiff >= 355 && rotDiff <= 360)) &&
+                (xSizeDiff <= 0.1f && ySizeDiff <= 0.1f))
             {
-                placeZRot = eventData.pointerDrag.GetComponent<RectTransform>().transform.eulerAngles.z;
-                vehicleZRot = GetComponent<RectTransform>().transform.eulerAngles.z;
+                Debug.Log("Vehicle placed: " + eventData.pointerDrag.name);
+                FindObjectOfType<GameManager>().SetVehiclePlaced(eventData.pointerDrag);
 
-                rotDiff = Mathf.Abs(placeZRot - vehicleZRot);
-                Debug.Log("Rotation difference: " + rotDiff);
+                objScript.rightPlace = true;
 
-                placeSiz = eventData.pointerDrag.GetComponent<RectTransform>().localScale;
-                vehicleSiz = GetComponent<RectTransform>().localScale;
-                xSizeDiff = Mathf.Abs(placeSiz.x - vehicleSiz.x);
-                ySizeDiff = Mathf.Abs(placeSiz.y - vehicleSiz.y);
-                Debug.Log("X size difference: " + xSizeDiff);
-                Debug.Log("Y size difference: " + ySizeDiff);
+                // Uzliek tieši DropZone pozīcijā ar DropZone scale
+                dragRect.localPosition = GetComponent<RectTransform>().localPosition;
+                dragRect.localScale = GetComponent<RectTransform>().localScale;
 
-                if ((rotDiff <= 5 || (rotDiff >= 355 && rotDiff <= 360)) && (xSizeDiff <= 0.1f && ySizeDiff <= 0.1f))
-                {
-                    Debug.Log("Vehicle placed: " + eventData.pointerDrag.name);
-                    FindObjectOfType<GameManager>().SetVehiclePlaced(eventData.pointerDrag);
-
-                    objScript.rightPlace = true;
-                    RectTransform dragRect = eventData.pointerDrag.GetComponent<RectTransform>();
-                    dragRect.anchoredPosition = GetComponent<RectTransform>().anchoredPosition;
-                    dragRect.localPosition = GetComponent<RectTransform>().localPosition;
-                    dragRect.localScale = GetComponent<RectTransform>().localScale;
-
-                    // Audio efekti
-                    switch (eventData.pointerDrag.tag)
-                    {
-                        case "Garbage": objScript.effects.PlayOneShot(objScript.audioCli[2]); break;
-                        case "Ambulance": objScript.effects.PlayOneShot(objScript.audioCli[3]); break;
-                        case "Fire": objScript.effects.PlayOneShot(objScript.audioCli[4]); break;
-                        case "School": objScript.effects.PlayOneShot(objScript.audioCli[5]); break;
-                        case "b2": objScript.effects.PlayOneShot(objScript.audioCli[6]); break;
-                        case "cement": objScript.effects.PlayOneShot(objScript.audioCli[7]); break;
-                        case "e46": objScript.effects.PlayOneShot(objScript.audioCli[8]); break;
-                        case "e61": objScript.effects.PlayOneShot(objScript.audioCli[9]); break;
-                        case "WorkCar": objScript.effects.PlayOneShot(objScript.audioCli[10]); break;
-                        case "Police": objScript.effects.PlayOneShot(objScript.audioCli[11]); break;
-                        case "Tractor": objScript.effects.PlayOneShot(objScript.audioCli[12]); break;
-                        case "Tractor2": objScript.effects.PlayOneShot(objScript.audioCli[13]); break;
-                    }
-                }
-
+                // Audio efekti
+                PlayAudio(dragRect.tag);
             }
-            else
+        }
+        else // Nepareizā vieta
+        {
+            objScript.rightPlace = false;
+            objScript.effects.PlayOneShot(objScript.audioCli[1]);
+
+            // Atgriež uz random startCoordinates (localPosition)
+            for (int i = 0; i < objScript.vehicles.Length; i++)
             {
-                objScript.rightPlace = false;
-                objScript.effects.PlayOneShot(objScript.audioCli[1]);
-
-                switch (eventData.pointerDrag.tag)
+                if (objScript.vehicles[i] != null &&
+                    objScript.vehicles[i].tag == eventData.pointerDrag.tag)
                 {
-                    case "Garbage":
-                        objScript.vehicles[0].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[0];
-                        break;
-
-                    case "Ambulance":
-                        objScript.vehicles[1].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[1];
-                        break;
-
-                    case "Fire":
-                        objScript.vehicles[2].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[2];
-                        break;
-
-                    case "School":
-                        objScript.vehicles[3].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[3];
-                        break;
-
-                    case "b2":
-                        objScript.vehicles[4].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[4];
-                        break;
-
-                    case "cement":
-                        objScript.vehicles[5].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[5];
-                        break;
-
-                    case "e46":
-                        objScript.vehicles[6].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[6];
-                        break;
-
-                    case "e61":
-                        objScript.vehicles[7].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[7];
-                        break;
-
-                    case "WorkCar":
-                        objScript.vehicles[8].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[8];
-                        break;
-
-                    case "Police":
-                        objScript.vehicles[9].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[9];
-                        break;
-
-                    case "Tractor":
-                        objScript.vehicles[10].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[10];
-                        break;
-
-                    case "Tractor2":
-                        objScript.vehicles[11].GetComponent<RectTransform>().localPosition = objScript.startCoordinates[11];
-                        break;
-
-                    default:
-                        Debug.Log("Unknown tag detected");
-                        break;
-
+                    objScript.vehicles[i].GetComponent<RectTransform>().localPosition =
+                        objScript.startCoordinates[i];
+                    break;
                 }
             }
         }
     }
 
+    private void PlayAudio(string tag)
+    {
+        switch (tag)
+        {
+            case "Garbage": objScript.effects.PlayOneShot(objScript.audioCli[2]); break;
+            case "Ambulance": objScript.effects.PlayOneShot(objScript.audioCli[3]); break;
+            case "Fire": objScript.effects.PlayOneShot(objScript.audioCli[4]); break;
+            case "School": objScript.effects.PlayOneShot(objScript.audioCli[5]); break;
+            case "b2": objScript.effects.PlayOneShot(objScript.audioCli[6]); break;
+            case "cement": objScript.effects.PlayOneShot(objScript.audioCli[7]); break;
+            case "e46": objScript.effects.PlayOneShot(objScript.audioCli[8]); break;
+            case "e61": objScript.effects.PlayOneShot(objScript.audioCli[9]); break;
+            case "WorkCar": objScript.effects.PlayOneShot(objScript.audioCli[10]); break;
+            case "Police": objScript.effects.PlayOneShot(objScript.audioCli[11]); break;
+            case "Tractor": objScript.effects.PlayOneShot(objScript.audioCli[12]); break;
+            case "Tractor2": objScript.effects.PlayOneShot(objScript.audioCli[13]); break;
+        }
+    }
 }

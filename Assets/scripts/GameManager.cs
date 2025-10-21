@@ -47,6 +47,18 @@ public class GameManager : MonoBehaviour
         // Random spawn sākumā (ja tev ir šī funkcija)
         RandomizeDropZones();
         RandomSpawnVehicles();
+
+        // Atjauno start pozīcijas ObjectScript'ā, lai tās kļūst par jaunajām "pareizajām"
+        ObjectScript objScript = FindObjectOfType<ObjectScript>();
+        if (objScript != null)
+        {
+            for (int i = 0; i < Vehicles.Length; i++)
+            {
+                if (Vehicles[i] != null)
+                    objScript.startCoordinates[i] = Vehicles[i].GetComponent<RectTransform>().localPosition;
+            }
+        }
+
     }
 
     void Update()
@@ -246,10 +258,21 @@ public class GameManager : MonoBehaviour
 
                 if (!IsInsideAnyDropZoneWorld(vehicleWorldRect) && !IsOverlappingOtherVehicles(vehicleWorldRect, existingRects))
                 {
-                    vehicleRect.position = randomPos;
+                    vehicleRect.localPosition = randomPos; // ✅ mainīts no position uz localPosition
+
+                    float randomScale = Random.Range(0.8f, 1.2f);
+                    vehicleRect.localScale = new Vector3(randomScale, randomScale, 1f);
+
+                    float randomRotation = Random.Range(-10f, 10f);
+                    vehicleRect.localRotation = Quaternion.Euler(0f, 0f, randomRotation);
+
                     existingRects.Add(vehicleWorldRect);
                     validPosition = true;
                 }
+
+                Debug.Log($"{vehicle.name} spawn at {vehicleRect.localPosition}");
+
+
             }
 
             // Ja pēc maxAttempts nav atrasta derīga pozīcija → piespiež spawnēt pēdējā random pozīcijā

@@ -15,16 +15,20 @@ public class ObjectScript : MonoBehaviour
     public static GameObject lastDragged = null;
     public static bool drag = false;
 
-
     void Awake()
     {
-        startCoordinates = new Vector2[vehicles.Length];
-        Debug.Log(vehicles.Length);
-        Debug.Log(startCoordinates.Length);
+        // ✅ Pārliecināmies, ka masīvs ir pareizā garuma un nav null
+        if (startCoordinates == null || startCoordinates.Length != vehicles.Length)
+            startCoordinates = new Vector2[vehicles.Length];
+
+        // ✅ Šeit tikai saglabā sākotnējās pozīcijas, ja tās vēl nav pārrakstītas GameManager'ā
         for (int i = 0; i < vehicles.Length; i++)
         {
-            startCoordinates[i] = vehicles[i].GetComponent<RectTransform>().localPosition;
-            Debug.Log(vehicles[i].GetComponent<RectTransform>().localPosition);
+            if (vehicles[i] != null)
+                startCoordinates[i] = vehicles[i].GetComponent<RectTransform>().localPosition;
+
+            Debug.Log($"Saved start pos for {vehicles[i].name}: {startCoordinates[i]}");
         }
+
     }
 }
