@@ -50,16 +50,65 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
             objScript.rightPlace = false;
             objScript.effects.PlayOneShot(objScript.audioCli[1]);
 
-            // Atgriež uz random startCoordinates (localPosition)
-            for (int i = 0; i < objScript.vehicles.Length; i++)
+            GameObject dragged = eventData.pointerDrag;
+            RectTransform draggedRect = dragged.GetComponent<RectTransform>();
+
+            // --- NEW: use GameManager.Vehicles (single source of truth) to find the exact instance index ---
+            GameManager gm = FindObjectOfType<GameManager>();
+            int foundIndex = -1;
+            if (gm != null && gm.Vehicles != null)
             {
-                if (objScript.vehicles[i] != null &&
-                    objScript.vehicles[i].tag == eventData.pointerDrag.tag)
+                for (int i = 0; i < gm.Vehicles.Length; i++)
                 {
-                    objScript.vehicles[i].GetComponent<RectTransform>().localPosition =
-                        objScript.startCoordinates[i];
-                    break;
+                    if (gm.Vehicles[i] == dragged)
+                    {
+                        foundIndex = i;
+                        break;
+                    }
                 }
+            }
+
+            if (foundIndex != -1 && objScript.startCoordinates != null && foundIndex < objScript.startCoordinates.Length)
+            {
+                // restore the same localPosition that GameManager recorded into ObjectScript.startCoordinates
+                Vector2 start = objScript.startCoordinates[foundIndex];
+                draggedRect.localPosition = new Vector3(start.x, start.y, draggedRect.localPosition.z);
+            }
+            else
+            {
+                // Fallback: try exact instance match in ObjectScript.vehicles (if GameManager wasn't available / arrays differ)
+                bool restored = false;
+                if (objScript.vehicles != null)
+                {
+                    for (int i = 0; i < objScript.vehicles.Length; i++)
+                    {
+                        if (objScript.vehicles[i] == dragged)
+                        {
+                            Vector2 start = objScript.startCoordinates.Length > i ? objScript.startCoordinates[i] : Vector2.zero;
+                            draggedRect.localPosition = new Vector3(start.x, start.y, draggedRect.localPosition.z);
+                            restored = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!restored)
+                {
+                    // Last fallback: match by tag (older behavior)
+                    for (int i = 0; i < objScript.vehicles.Length; i++)
+                    {
+                        if (objScript.vehicles[i] != null && objScript.vehicles[i].tag == dragged.tag)
+                        {
+                            draggedRect.localPosition = objScript.startCoordinates[i];
+                            Debug.LogWarning($"DropPlaceScript: exact instance not found; restored by tag using index {i} for {dragged.name}");
+                            restored = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!restored)
+                    Debug.LogWarning($"DropPlaceScript: couldn't find saved start position for {dragged.name}.");
             }
         }
     }

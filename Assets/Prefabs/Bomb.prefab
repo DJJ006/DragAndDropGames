@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 652095067132740999}
   - component: {fileID: 6506547882294043603}
   - component: {fileID: 4923372693059797610}
+  - component: {fileID: 8865023482099192174}
   m_Layer: 5
   m_Name: Bomb
   m_TagString: bomb
@@ -163,3 +164,16 @@ MonoBehaviour:
   fadeDuration: 1.5
   waveAmplitude: 25
   waveFrequency: 1
+--- !u!114 &8865023482099192174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8355307987513527437}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c80851ddbdee3864eb9fab2840ae3a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  forcedSortingOrder: 100

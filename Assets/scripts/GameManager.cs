@@ -57,6 +57,9 @@ public class GameManager : MonoBehaviour
                 if (Vehicles[i] != null)
                     objScript.startCoordinates[i] = Vehicles[i].GetComponent<RectTransform>().localPosition;
             }
+
+            // NEW: ensure the ObjectScript internal dictionary reflects the updated array
+            objScript.UpdateStartPositionsFromArray();
         }
 
     }

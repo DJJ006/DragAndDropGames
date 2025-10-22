@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -54,17 +55,21 @@ public class FlyingObjectsControllerScript : MonoBehaviour
             isFadingOut = true;
         }
 
-        if (CompareTag("Bomb") && !isExploading &&
-            RectTransformUtility.RectangleContainsScreenPoint(
-                rectTransform, Input.mousePosition, Camera.main))
-        {
-            Debug.Log("The cursor collided with a bomb! (without car)");
-            TriggerExplosion();
+        // Click-to-explode for bombs (left mouse button)
+        // NOTE: some places in the project use tag "bomb" (lowercase). Accept both.
+        // Also pick the correct camera parameter for RectangleContainsScreenPoint: pass null for ScreenSpaceOverlay canvas.
+        Canvas parentCanvas = rectTransform.GetComponentInParent<Canvas>();
+        Camera hitCamera = (parentCanvas != null && parentCanvas.renderMode == RenderMode.ScreenSpaceOverlay) ? null : Camera.main;
 
+        if ((CompareTag("Bomb") || CompareTag("bomb")) && !isExploading &&
+            Input.GetMouseButtonDown(0) &&
+            RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition, hitCamera))
+        {
+            Debug.Log($"Bomb clicked: {name} (tag={tag})");
+            TriggerExplosion();
         }
 
         // Caurskatīt no šejienes
-
 
         if (ObjectScript.drag && !isFadingOut &&
             RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition, Camera.main))
@@ -118,19 +123,24 @@ public class FlyingObjectsControllerScript : MonoBehaviour
 
     void ExploadAndDestroy(float radius)
     {
+        // Find all colliders in radius and destroy only clouds (do not affect vehicles)
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, radius);
 
         foreach (var hitCollider in hitColliders)
         {
-            if (hitCollider != null && hitCollider.gameObject != gameObject)
-            {
-                FlyingObjectsControllerScript obj =
-                    hitCollider.gameObject.GetComponent<FlyingObjectsControllerScript>();
+            if (hitCollider == null || hitCollider.gameObject == gameObject) continue;
 
-                if (obj != null && !obj.isExploading)
-                {
-                    obj.StartToDestroy();
-                }
+            GameObject target = hitCollider.gameObject;
+
+            // Only affect objects explicitly tagged as "Cloud"
+            if (!target.CompareTag("Cloud")) continue;
+
+            FlyingObjectsControllerScript obj =
+                target.GetComponent<FlyingObjectsControllerScript>();
+
+            if (obj != null && !obj.isExploading)
+            {
+                obj.StartToDestroy();
             }
         }
     }

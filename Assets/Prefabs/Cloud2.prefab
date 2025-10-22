@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 1433121095571272038}
   - component: {fileID: 2371741748610597726}
   - component: {fileID: 4093856521145344877}
+  - component: {fileID: 5810244372493039371}
   m_Layer: 5
   m_Name: Cloud2
-  m_TagString: Untagged
+  m_TagString: Cloud
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -105,3 +106,16 @@ MonoBehaviour:
   fadeDuration: 1.5
   waveAmplitude: 25
   waveFrequency: 1
+--- !u!114 &5810244372493039371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 932716592285813288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c80851ddbdee3864eb9fab2840ae3a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  forcedSortingOrder: 100
