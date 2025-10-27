@@ -10,10 +10,18 @@ public class DropPlaceScript : MonoBehaviour, IDropHandler
     private float xSizeDiff, ySizeDiff;
     public ObjectScript objScript;
 
+    void Start()
+    {
+        if(objScript == null)
+        {
+            objScript = Object.FindFirstObjectByType<ObjectScript>();
+        }
+    }
+
     public void OnDrop(PointerEventData eventData)
     {
-        if (eventData.pointerDrag == null || !Input.GetMouseButtonUp(0) ||
-            Input.GetMouseButton(1) || Input.GetMouseButton(2)) return;
+        if (eventData.pointerDrag == null)
+            return;
 
         RectTransform dragRect = eventData.pointerDrag.GetComponent<RectTransform>();
 
