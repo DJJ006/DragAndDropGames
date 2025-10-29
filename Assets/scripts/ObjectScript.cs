@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//CHANGES FOR ANDROID NOT NEEDED
 public class ObjectScript : MonoBehaviour
 {
     public GameObject[] vehicles;

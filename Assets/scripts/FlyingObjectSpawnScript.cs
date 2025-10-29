@@ -1,6 +1,8 @@
 using UnityEngine;
 
 public class FlyingObjectSpawnScript : MonoBehaviour
+
+    //CHANGES NOT NEEDED FOR ANDROID
 {
     ScreenBoundriesScript screenBoundriesScript;
     public GameObject[] cludsPrefabs;
