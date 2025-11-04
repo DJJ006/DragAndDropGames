@@ -15,6 +15,12 @@ public class FlyingObjectSpawnScript : MonoBehaviour
     public float objectMinSpeed = 2f;
     public float objectMaxSpeed = 200f;
 
+    // New tuning fields to control spawn area relative to map bounds
+    [Header("Spawn area tuning")]
+    public float spawnPadding = 300f;         // horizontal distance outside map to spawn
+    public float spawnVerticalExtra = 300f;   // extra vertical range beyond map top/bottom
+    public bool randomizeDirection = true;    // allow objects to go left or right
+
     // If StartSpawning was already invoked, this prevents duplicate invokes.
     private bool spawningStarted = false;
 
@@ -63,9 +69,27 @@ public class FlyingObjectSpawnScript : MonoBehaviour
 
         GameObject cloudPrefab = cludsPrefabs[Random.Range(0, cludsPrefabs.Length)];
 
-        // Choose random X and Y across world bounds so clouds are distributed over canvas
-        float x = Random.Range(minX, maxX);
-        float y = Random.Range(minY, maxY);
+        // Choose movement speed and optional random direction
+        float movementSpeed = Random.Range(cloudMinSpeed, cloudMaxSpeed);
+        if (randomizeDirection && Random.value < 0.5f)
+            movementSpeed = -movementSpeed; // negative speed -> moves right (controller negates speed in movement)
+
+        // Spawn outside map on the side that matches the direction so clouds fly over the whole map
+        float x;
+        if (movementSpeed > 0f)
+        {
+            // moving left -> spawn to the right of the map
+            x = maxX + spawnPadding;
+        }
+        else
+        {
+            // moving right -> spawn to the left of the map
+            x = minX - spawnPadding;
+        }
+
+        // Scatter vertically across an expanded area
+        float y = Random.Range(minY - spawnVerticalExtra, maxY + spawnVerticalExtra);
+
         Vector3 spawnPosition = new Vector3(x, y, spawnPoint != null ? spawnPoint.position.z : 0f);
 
         // Instantiate under spawnPoint (keeps hierarchy) but ensure world position is used
@@ -74,7 +98,6 @@ public class FlyingObjectSpawnScript : MonoBehaviour
         // put clouds in front of other siblings if desired
         cloud.transform.SetAsLastSibling();
 
-        float movementSpeed = Random.Range(cloudMinSpeed, cloudMaxSpeed);
         FlyingObjectsControllerScript controller = cloud.GetComponent<FlyingObjectsControllerScript>();
         if (controller != null) controller.speed = movementSpeed;
     }
@@ -85,15 +108,33 @@ public class FlyingObjectSpawnScript : MonoBehaviour
             return;
 
         GameObject objectPrefab = objectPrefabs[Random.Range(0, objectPrefabs.Length)];
-        float y = Random.Range(minY, maxY);
 
-        Vector3 spawnPosition = new Vector3(-spawnPoint.position.x, y, spawnPoint.position.z);
-
-        GameObject flyingObject =
-            Instantiate(objectPrefab, spawnPosition, Quaternion.identity, spawnPoint);
+        // Choose movement speed and optional random direction
         float movementSpeed = Random.Range(objectMinSpeed, objectMaxSpeed);
-        FlyingObjectsControllerScript controller =
-            flyingObject.GetComponent<FlyingObjectsControllerScript>();
-        if (controller != null) controller.speed = -movementSpeed;
+        if (randomizeDirection && Random.value < 0.5f)
+            movementSpeed = -movementSpeed;
+
+        // Determine spawn x based on direction so object will traverse the map
+        float x;
+        if (movementSpeed > 0f)
+        {
+            // moving left -> spawn to the right
+            x = maxX + spawnPadding;
+        }
+        else
+        {
+            // moving right -> spawn to the left
+            x = minX - spawnPadding;
+        }
+
+        // Scatter vertically across an expanded area
+        float y = Random.Range(minY - spawnVerticalExtra, maxY + spawnVerticalExtra);
+
+        Vector3 spawnPosition = new Vector3(x, y, spawnPoint != null ? spawnPoint.position.z : 0f);
+
+        GameObject flyingObject = Instantiate(objectPrefab, spawnPosition, Quaternion.identity, spawnPoint);
+
+        FlyingObjectsControllerScript controller = flyingObject.GetComponent<FlyingObjectsControllerScript>();
+        if (controller != null) controller.speed = movementSpeed;
     }
 }

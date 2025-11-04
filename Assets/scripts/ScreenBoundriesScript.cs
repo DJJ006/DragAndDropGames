@@ -38,6 +38,14 @@ public class ScreenBoundriesScript : MonoBehaviour
         RecalculateBounds();
     }
 
+    // Keep editor changes in sync
+    private void OnValidate()
+    {
+        if (Application.isPlaying) return;
+        if (targetCam == null) targetCam = Camera.main;
+        RecalculateBounds();
+    }
+
     private void Update()
     {
         if (targetCam == null)
@@ -75,12 +83,18 @@ public class ScreenBoundriesScript : MonoBehaviour
         float wbMinY = worldBounds.yMin;
         float wbMaxY = worldBounds.yMax;
 
+        // Ensure minX/maxX/minY/maxY reflect the actual world/map extents
+        minX = wbMinX;
+        maxX = wbMaxX;
+        minY = wbMinY;
+        maxY = wbMaxY;
+
         if (targetCam.orthographic)
         {
             float halfH = targetCam.orthographicSize;
             float halfW = halfH * targetCam.aspect;
 
-            // Horizontal
+            // Horizontal camera clamped extents based on camera size and world bounds
             if (halfW * 2f >= (wbMaxX - wbMinX))
             {
                 minCamX = maxCamX = (wbMinX + wbMaxX) * 0.5f;
@@ -138,5 +152,11 @@ public class ScreenBoundriesScript : MonoBehaviour
         float cy = Mathf.Clamp(curPosition.y, minCamY, maxCamY);
 
         return new Vector3(cx, cy, curPosition.z);
+    }
+
+    // Helper: return the configured world bounds (map extents)
+    public Rect GetWorldBounds()
+    {
+        return worldBounds;
     }
 }
