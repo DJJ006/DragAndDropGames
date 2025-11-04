@@ -11,8 +11,9 @@ public class ScreenBoundriesScript : MonoBehaviour
     public Vector3 screenPoint, offset;
     [HideInInspector]
     public float minX, maxX, minY, maxY;
-    
-    public Rect worldBounds = new Rect(-960, -540, 1920, 1080);
+
+    // Updated default worldBounds to match canvas 3990x2310 (centered)
+    public Rect worldBounds = new Rect(-1995f, -1155f, 3990f, 2310f);
     [Range(0f, 0.5f)]
     public float padding = 0.02f;
 
@@ -35,7 +36,6 @@ public class ScreenBoundriesScript : MonoBehaviour
             targetCam = Camera.main;
         }
         RecalculateBounds();
-
     }
 
     private void Update()
@@ -45,24 +45,22 @@ public class ScreenBoundriesScript : MonoBehaviour
             return;
         }
 
-        bool changes = true;
+        bool changes = false;
 
-        if(targetCam.orthographic)
+        if (targetCam.orthographic)
         {
-            if(!Mathf.Approximately(targetCam.orthographicSize, lastOrthoSize))
+            if (!Mathf.Approximately(targetCam.orthographicSize, lastOrthoSize))
                 changes = true;
         }
 
-        if(!Mathf.Approximately(targetCam.aspect, lastAspect))
+        if (!Mathf.Approximately(targetCam.aspect, lastAspect))
             changes = true;
 
-        if(targetCam.transform.position != lastCamPosition)
+        if (targetCam.transform.position != lastCamPosition)
             changes = true;
 
         if (changes)
             RecalculateBounds();
-
-
     }
 
     public void RecalculateBounds()
@@ -82,38 +80,49 @@ public class ScreenBoundriesScript : MonoBehaviour
             float halfH = targetCam.orthographicSize;
             float halfW = halfH * targetCam.aspect;
 
+            // Horizontal
             if (halfW * 2f >= (wbMaxX - wbMinX))
             {
                 minCamX = maxCamX = (wbMinX + wbMaxX) * 0.5f;
-            } else {
+            }
+            else
+            {
                 minCamX = wbMinX + halfW;
                 maxCamX = wbMaxX - halfW;
             }
 
-            if (halfH * 2f >= (wbMaxX - wbMinY)){
+            // Vertical (fixed variable names and logic)
+            if (halfH * 2f >= (wbMaxY - wbMinY))
+            {
                 minCamY = maxCamY = (wbMinY + wbMaxY) * 0.5f;
-            } else {
+            }
+            else
+            {
                 minCamY = wbMinY + halfH;
                 maxCamY = wbMaxY - halfH;
-
             }
+        }
+        else
+        {
+            // For perspective camera use world bounds center as fallback
+            minCamX = maxCamX = (wbMinX + wbMaxX) * 0.5f;
+            minCamY = maxCamY = (wbMinY + wbMaxY) * 0.5f;
         }
 
         lastOrthoSize = targetCam.orthographicSize;
         lastAspect = targetCam.aspect;
         lastCamPosition = targetCam.transform.position;
-
     }
 
     // FOR DRAGGABLE OBJECTS
     public Vector2 GetClampedPosition(Vector3 curPosition)
-        {
-            float shrinkW = worldBounds.width * padding;
-            float shrinkH = worldBounds.height * padding;
-            float wbMinX = worldBounds.xMin + shrinkW;
-            float wbMaxX = worldBounds.xMax - shrinkW;
-            float wbMinY = worldBounds.yMin + shrinkH;
-            float wbMaxY = worldBounds.yMax - shrinkH;
+    {
+        float shrinkW = worldBounds.width * padding;
+        float shrinkH = worldBounds.height * padding;
+        float wbMinX = worldBounds.xMin + shrinkW;
+        float wbMaxX = worldBounds.xMax - shrinkW;
+        float wbMinY = worldBounds.yMin + shrinkH;
+        float wbMaxY = worldBounds.yMax - shrinkH;
 
         float cx = Mathf.Clamp(curPosition.x, wbMinX, wbMaxX);
         float cy = Mathf.Clamp(curPosition.y, wbMinY, wbMaxY);
@@ -121,12 +130,13 @@ public class ScreenBoundriesScript : MonoBehaviour
         return new Vector2(cx, cy);
     }
 
-    //FOR CAMERA
-    public Vector2 GetClampedCameraPosition(Vector3 curPosition)
+    // FOR CAMERA
+    // changed return type to Vector3 so camera Z is preserved (was implicitly set to 0)
+    public Vector3 GetClampedCameraPosition(Vector3 curPosition)
     {
         float cx = Mathf.Clamp(curPosition.x, minCamX, maxCamX);
-        float cy = Mathf.Clamp(curPosition.y, minCamY, maxCamX);
+        float cy = Mathf.Clamp(curPosition.y, minCamY, maxCamY);
 
-        return new Vector2(cx, cy);
+        return new Vector3(cx, cy, curPosition.z);
     }
 }

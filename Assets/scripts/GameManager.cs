@@ -123,10 +123,20 @@ public class GameManager : MonoBehaviour
         if (WinPanel != null)
         {
             WinPanel.SetActive(true);
+
+            // ensure panel has a transparent full-screen blocker so clicks don't pass through
+            EnsurePanelBlocker(WinPanel);
+
+            CenterPanelOnCamera(WinPanel);
             WinPanel.transform.SetAsLastSibling();
 
-            TimerText.gameObject.SetActive(true);
-            TimerText.transform.SetAsLastSibling();
+            if (TimerText != null)
+            {
+                TimerText.gameObject.SetActive(true);
+                // Move timer higher than the panel/buttons by a world-space vertical offset.
+                CenterPanelOnCamera(TimerText.gameObject, 200f);
+                TimerText.transform.SetAsLastSibling();
+            }
         }
 
         // nodrošina, ka mašīnas ir zem paneliem (ja UI hierarchy tiek izmantots)
@@ -171,10 +181,20 @@ public class GameManager : MonoBehaviour
         if (LosePanel != null)
         {
             LosePanel.SetActive(true);
+
+            // ensure panel has a transparent full-screen blocker so clicks don't pass through
+            EnsurePanelBlocker(LosePanel);
+
+            CenterPanelOnCamera(LosePanel);
             LosePanel.transform.SetAsLastSibling();
 
-            TimerText.gameObject.SetActive(true);
-            TimerText.transform.SetAsLastSibling();
+            if (TimerText != null)
+            {
+                TimerText.gameObject.SetActive(true);
+                // Move timer higher than the panel/buttons
+                CenterPanelOnCamera(TimerText.gameObject, 200f);
+                TimerText.transform.SetAsLastSibling();
+            }
         }
 
         // aptur spēli un kameru
@@ -375,5 +395,51 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void CenterPanelOnCamera(GameObject panel, float verticalOffset = 0f)
+    {
+        if (panel == null) return;
+
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        // Uzstāda paneli kameras priekšā
+        Vector3 cameraCenter = cam.transform.position + cam.transform.forward * 500f; // attālums no kameras
+        cameraCenter += cam.transform.up * verticalOffset; // vertical offset in world units
+        panel.transform.position = cameraCenter;
+
+        // Pielīdzina rotāciju, lai panelis skatās uz kameru
+        panel.transform.rotation = Quaternion.LookRotation(cam.transform.forward, cam.transform.up);
+    }
+
+    // Create or enable a transparent full-screen Image under the panel to block clicks passing through.
+    private void EnsurePanelBlocker(GameObject panel)
+    {
+        if (panel == null) return;
+
+        Transform existing = panel.transform.Find("_Blocker");
+        if (existing != null)
+        {
+            existing.gameObject.SetActive(true);
+            return;
+        }
+
+        // create blocker
+        GameObject blocker = new GameObject("_Blocker", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        Image img = blocker.GetComponent<Image>();
+        img.color = new Color(0f, 0f, 0f, 0f); // fully transparent
+        img.raycastTarget = true; // important: receive raycasts so clicks don't pass through
+
+        RectTransform rt = blocker.GetComponent<RectTransform>();
+        rt.SetParent(panel.transform, false);
+
+        // stretch to fill parent (panel)
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        // Place blocker behind panel visuals but still block raycasts for the full panel rect
+        blocker.transform.SetAsFirstSibling();
+    }
 
 }
