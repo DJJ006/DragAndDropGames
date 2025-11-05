@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-// CHANGES FOR ANDROID
 public class CameraScript : MonoBehaviour
 {
-    public float maxZoom = 530f, minZoom = 150f;
+    public float minZoom = 150f;
+    private float maxZoom;
     public float puncZoomSpeed = 0.9f, mouseZoomSpeed = 150f;
     public float mouseFollowSpeed = 1f, touchPanSpeed = 1f;
     public ScreenBoundriesScript screenBoundries;
@@ -20,18 +20,16 @@ public class CameraScript : MonoBehaviour
     public float doubleTapMaxDelay = 0.4f;
     public float doubleTapMaxDistance = 100f;
 
-
     private void Awake()
     {
         if (cam == null)
-        {
             cam = GetComponent<Camera>();
-        }
 
         if (screenBoundries == null)
-        {
             screenBoundries = FindFirstObjectByType<ScreenBoundriesScript>();
-        }
+
+        // Prevent touches from being automatically simulated as mouse events (helps when testing on device / Unity Remote)
+        Input.simulateMouseWithTouches = false;
     }
 
     void Start()
@@ -41,7 +39,6 @@ public class CameraScript : MonoBehaviour
         transform.position = screenBoundries.GetClampedCameraPosition(transform.position);
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (TransformationScript.isTransforming)
@@ -59,6 +56,7 @@ public class CameraScript : MonoBehaviour
         if (Input.touchCount == 2)
             HandlePinch();
 
+        UpdateMaxZoom();
         cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minZoom, maxZoom);
         screenBoundries.RecalculateBounds();
         transform.position = screenBoundries.GetClampedCameraPosition(transform.position);
@@ -71,24 +69,43 @@ public class CameraScript : MonoBehaviour
         if (mouse.x < 0 || mouse.x > Screen.width || mouse.y < 0 || mouse.y > Screen.height)
             return;
 
+        // Only follow while the pointer/finger is actively pressed.
+        // This prevents smooth Lerp "gliding" after release when running in the Editor or Standalone (including Unity Remote)
+        bool isPressing = Input.GetMouseButton(0) || Input.touchCount > 0;
+        if (!isPressing)
+            return;
+
         Vector3 screenPoint = new Vector3(mouse.x, mouse.y, cam.nearClipPlane);
         Vector3 targetWorld = cam.ScreenToWorldPoint(screenPoint);
         Vector3 desired = new Vector3(targetWorld.x, targetWorld.y, transform.position.z);
 
-        //Remember to change for slowmotion
         transform.position =
             Vector3.Lerp(transform.position, desired, mouseFollowSpeed * Time.deltaTime);
     }
 
     void HandleTouch()
     {
-        if (Input.touchCount != 1)
+        // No touch -> stop gliding immediately
+        if (Input.touchCount == 0)
+        {
+            isTouchPanning = false;
+            panFingerId = -1;
+            return;
+        }
+
+        // Only handle single-finger panning
+        if (Input.touchCount > 1)
             return;
 
         Touch t = Input.GetTouch(0);
 
+        // Ignore if touching a UI button
         if (IsTouchingUIButton(t.position))
+        {
+            isTouchPanning = false;
+            panFingerId = -1;
             return;
+        }
 
         if (t.phase == TouchPhase.Began)
         {
@@ -98,7 +115,6 @@ public class CameraScript : MonoBehaviour
             {
                 StartCoroutine(ResetZoomSmooth());
                 lastTapTime = 0f;
-
             }
             else
             {
@@ -108,20 +124,23 @@ public class CameraScript : MonoBehaviour
             lastTouchPos = t.position;
             panFingerId = t.fingerId;
             isTouchPanning = true;
-
         }
-        else if (t.phase == TouchPhase.Moved && isTouchPanning &&
-            t.fingerId == panFingerId)
+        else if (t.phase == TouchPhase.Moved && isTouchPanning && t.fingerId == panFingerId)
         {
             Vector2 delta = t.position - lastTouchPos;
             transform.Translate(ScreenDeltaToWorldDelta(delta) * touchPanSpeed, Space.World);
             lastTouchPos = t.position;
 
+            // Clamp position while panning
+            transform.position = screenBoundries.GetClampedCameraPosition(transform.position);
         }
-        else if (t.phase == TouchPhase.Ended && t.phase == TouchPhase.Canceled)
+        else if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
         {
+            // Stop immediately on finger lift
             isTouchPanning = false;
             panFingerId = -1;
+            // Ensure no residual movement: snap to clamped position (prevents single-frame deltas from appearing as glide)
+            transform.position = screenBoundries.GetClampedCameraPosition(transform.position);
         }
     }
 
@@ -157,8 +176,7 @@ public class CameraScript : MonoBehaviour
 
     Vector3 ScreenDeltaToWorldDelta(Vector2 delta)
     {
-        float worldPerPixel =
-            (cam.orthographicSize * 2f) / Screen.height;
+        float worldPerPixel = (cam.orthographicSize * 2f) / Screen.height;
         return new Vector3(delta.x * worldPerPixel, delta.y * worldPerPixel, 0f);
     }
 
@@ -167,25 +185,33 @@ public class CameraScript : MonoBehaviour
         float duration = 0.25f;
         float elapsed = 0f;
         float initialZoom = cam.orthographicSize;
+        float targetZoom = startZoom;
 
         while (elapsed < duration)
         {
-            // Remember to hange for slowmotion
             elapsed += Time.deltaTime;
-
-            cam.orthographicSize = Mathf.Lerp(initialZoom, startZoom, elapsed / duration);
+            cam.orthographicSize = Mathf.Lerp(initialZoom, targetZoom, elapsed / duration);
             screenBoundries.RecalculateBounds();
             transform.position = screenBoundries.GetClampedCameraPosition(transform.position);
             yield return null;
         }
-        cam.orthographicSize = startZoom;
+
+        cam.orthographicSize = targetZoom;
         screenBoundries.RecalculateBounds();
         transform.position = screenBoundries.GetClampedCameraPosition(transform.position);
     }
 
-    // Public control method used by GameManager to enable/disable camera behaviour.
-    // Disables this script so Update stops running; does NOT disable the Camera component
-    // to avoid blanking the rendered view. When disabling, stop active coroutines and gesture state.
+    void UpdateMaxZoom()
+    {
+        if (screenBoundries == null || cam == null)
+            return;
+
+        Rect wb = screenBoundries.worldBounds;
+        float maxZoomHeight = wb.height / 2f;
+        float maxZoomWidth = (wb.width / 2f) / cam.aspect;
+        maxZoom = Mathf.Min(maxZoomHeight, maxZoomWidth);
+    }
+
     public void SetCameraActive(bool active)
     {
         if (!active)
