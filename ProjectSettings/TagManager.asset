@@ -19,6 +19,7 @@ TagManager:
   - car
   - bomb
   - Cloud
+  - InterstitialAdButton
   layers:
   - Default
   - TransparentFX
