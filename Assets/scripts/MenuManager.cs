@@ -13,7 +13,7 @@ public class MenuManager : MonoBehaviour
 
     public void LoadGame2()
     {
-        Debug.Log("Game 2 is not available yet!");
+        SceneManager.LoadScene("HanojasTornis");
     }
 
     public void LoadMainMenu()
