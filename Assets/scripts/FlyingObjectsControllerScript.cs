@@ -36,6 +36,35 @@ public class FlyingObjectsControllerScript : MonoBehaviour
         StartCoroutine(FadeIn());
     }
 
+    // Safe wrapper for CompareTag to avoid UnityException when a tag is not defined
+    private bool HasTag(string tagName)
+    {
+        try
+        {
+            return CompareTag(tagName);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning($"Tag check failed for '{tagName}': {ex.Message}");
+            return false;
+        }
+    }
+
+    // Overload for GameObject to check tags safely
+    private bool HasTag(GameObject go, string tagName)
+    {
+        if (go == null) return false;
+        try
+        {
+            return go.CompareTag(tagName);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning($"Tag check failed for '{tagName}' on GameObject '{go.name}': {ex.Message}");
+            return false;
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -48,7 +77,7 @@ public class FlyingObjectsControllerScript : MonoBehaviour
             isFadingOut = true;
         }
 
-        // ->
+        // =>
         if (speed < 0 && transform.position.x > (scrreenBoundriesScript.maxX - 80) && !isFadingOut)
         {
             StartCoroutine(FadeOutAndDestroy());
@@ -61,11 +90,15 @@ public class FlyingObjectsControllerScript : MonoBehaviour
         Canvas parentCanvas = rectTransform.GetComponentInParent<Canvas>();
         Camera hitCamera = (parentCanvas != null && parentCanvas.renderMode == RenderMode.ScreenSpaceOverlay) ? null : Camera.main;
 
-        if ((CompareTag("Bomb") || CompareTag("bomb")) && !isExploading &&
+        if ((HasTag("Bomb") || HasTag("bomb")) && !isExploading &&
             Input.GetMouseButtonDown(0) &&
             RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition, hitCamera))
         {
-            Debug.Log($"Bomb clicked: {name} (tag={tag})");
+            // Avoid accessing the 'tag' property directly (it can throw); use a safe read.
+            string safeTag;
+            try { safeTag = tag; } catch { safeTag = "<undefined>"; }
+
+            Debug.Log($"Bomb clicked: {name} (tag={safeTag})");
             TriggerExplosion();
         }
 
@@ -83,10 +116,10 @@ public class FlyingObjectsControllerScript : MonoBehaviour
                 ObjectScript.drag = false;
             }
 
-            if (CompareTag("bomb"))
-                StartToDestroy();
+            if (HasTag("bomb"))
+                StartToDestroy(Color.cyan);
             else
-                StartToDestroy();
+                StartToDestroy(Color.cyan);
 
         }
     }
@@ -133,19 +166,19 @@ public class FlyingObjectsControllerScript : MonoBehaviour
             GameObject target = hitCollider.gameObject;
 
             // Only affect objects explicitly tagged as "Cloud"
-            if (!target.CompareTag("Cloud")) continue;
+            if (!HasTag(target, "Cloud")) continue;
 
             FlyingObjectsControllerScript obj =
                 target.GetComponent<FlyingObjectsControllerScript>();
 
             if (obj != null && !obj.isExploading)
             {
-                obj.StartToDestroy();
+                obj.StartToDestroy(Color.cyan); // Pass the required Color argument
             }
         }
     }
 
-    public void StartToDestroy()
+    public void StartToDestroy(Color cyan)
     {
         if (!isFadingOut)
         {
@@ -221,10 +254,10 @@ public class FlyingObjectsControllerScript : MonoBehaviour
         }
 
         // Ja iznīcinātais ir transportlīdzeklis
-        if (target.CompareTag("Garbage") || target.CompareTag("Ambulance") || target.CompareTag("Fire") ||
-            target.CompareTag("School") || target.CompareTag("b2") || target.CompareTag("cement") ||
-            target.CompareTag("e46") || target.CompareTag("e61") || target.CompareTag("WorkCar") ||
-            target.CompareTag("Police") || target.CompareTag("Tractor") || target.CompareTag("Tractor2"))
+        if (HasTag(target, "Garbage") || HasTag(target, "Ambulance") || HasTag(target, "Fire") ||
+            HasTag(target, "School") || HasTag(target, "b2") || HasTag(target, "cement") ||
+            HasTag(target, "e46") || HasTag(target, "e61") || HasTag(target, "WorkCar") ||
+            HasTag(target, "Police") || HasTag(target, "Tractor") || HasTag(target, "Tractor2"))
         {
             FindObjectOfType<GameManager>().OnVehicleDestroyed(target);
         }

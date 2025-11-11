@@ -20,6 +20,7 @@ TagManager:
   - bomb
   - Cloud
   - InterstitialAdButton
+  - RewardedAdButton
   layers:
   - Default
   - TransparentFX

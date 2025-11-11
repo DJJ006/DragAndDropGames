@@ -15,8 +15,11 @@ Unity 2D Drag And Drop games for children. Spēle izstrādāta Unity ar mērķi 
 - [x] Add flying obstacles
 - [x] Create game timer
 - [x] Create main menu
-- [ ] Change target platform to Android
-- [ ] Replace all mouse input with touch 
+- [x] Change target platform to Android
+- [x] Replace all mouse input with touch
+- [ ] Add interstitial ad
+- [ ] Add rewarded ad
+- [ ] Add banner ad  
 ---
 
 ## 🎮 Spēles apraksts
