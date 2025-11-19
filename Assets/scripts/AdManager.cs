@@ -12,7 +12,8 @@ public class AdManager : MonoBehaviour
     public RewardedAds rewardedAds;
     [SerializeField] bool turnOffRewardedAds = false;
 
-    // .......
+    public BannerAd bannerAd;
+    [SerializeField] bool turnOffBannerAd = false;
 
     public static AdManager Instance { get; private set; }
 
@@ -46,6 +47,11 @@ public class AdManager : MonoBehaviour
         if (!turnOffRewardedAds)
         {
             rewardedAds.LoadAd();
+        }
+
+        if (!turnOffBannerAd)
+        {
+            bannerAd.LoadBanner();
         }
     }
 
@@ -92,12 +98,21 @@ public class AdManager : MonoBehaviour
         if (rewardedAds == null)
             rewardedAds = FindFirstObjectByType<RewardedAds>();
 
+        if (bannerAd == null)
+            bannerAd = FindFirstObjectByType<BannerAd>();
+
         Button rewardedAdButton =
-            GameObject.FindGameObjectWithTag("RewardeAdButton").GetComponent<Button>();
+            GameObject.FindGameObjectWithTag("RewardedAdButton").GetComponent<Button>();
 
         if (rewardedAds != null && rewardedAdButton != null)
             rewardedAds.SetButton(rewardedAdButton);
 
+
+        Button bannerButton = GameObject.FindGameObjectWithTag("BannerAdButton").GetComponent<Button>();
+        if (bannerAd != null && bannerButton != null)
+        {
+            bannerAd.SetButton(bannerButton);
+        }
 
         if (!firstSceneLoad)
         {

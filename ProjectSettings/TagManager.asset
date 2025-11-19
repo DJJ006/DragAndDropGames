@@ -21,6 +21,7 @@ TagManager:
   - Cloud
   - InterstitialAdButton
   - RewardedAdButton
+  - BannerAdButton
   layers:
   - Default
   - TransparentFX
