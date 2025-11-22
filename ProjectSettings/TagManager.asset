@@ -22,6 +22,7 @@ TagManager:
   - InterstitialAdButton
   - RewardedAdButton
   - BannerAdButton
+  - Peg
   layers:
   - Default
   - TransparentFX

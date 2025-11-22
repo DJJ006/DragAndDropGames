@@ -1,17 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class HanoiGameManager : MonoBehaviour
 {
     [Header("Scene References")]
     public Peg[] Pegs;                     // assign left->middle->right pegs
-    public RectTransform DiskPrefab;       // UI disk prefab (Image with Disk script)
-    public int DiskCount = 3;              // default disks
-    public float DiskHeight = 40f;         // vertical spacing between disks
+    public RectTransform DiskPrefab;       // UI disk prefab (Image + Disk script)
     public Transform DiskParent;           // parent (Canvas) for instantiated disks
 
+    [Header("Disk Settings")]
+    public int DiskCount = 3;              // number of disks generated
+    public float DiskHeight = 40f;         // vertical spacing between disks
+    public Sprite[] DiskSprites;           // 0 = largest, last = smallest
+
     [Header("Gameplay")]
-    public bool autoShuffleStart = false;  // if true, randomize initial distribution (not standard Hanoi)
+    public bool autoShuffleStart = false;  // optional random start
 
     private List<Disk> disks = new List<Disk>();
 
@@ -20,6 +24,10 @@ public class HanoiGameManager : MonoBehaviour
         InitializeGame();
     }
 
+
+    // -----------------------------
+    //      INITIALIZE GAME
+    // -----------------------------
     public void InitializeGame()
     {
         ClearExisting();
@@ -28,6 +36,10 @@ public class HanoiGameManager : MonoBehaviour
         HanoiUIManager.Instance?.ResetUI();
     }
 
+
+    // -----------------------------
+    //      CLEAR OLD OBJECTS
+    // -----------------------------
     private void ClearExisting()
     {
         foreach (Peg p in Pegs)
@@ -41,35 +53,75 @@ public class HanoiGameManager : MonoBehaviour
         disks.Clear();
     }
 
+
+    // -----------------------------
+    //      CREATE DISKS (WITH IMAGES)
+    // -----------------------------
     private void CreateDisks(int count)
     {
-        if (DiskPrefab == null || DiskParent == null) return;
+        if (DiskPrefab == null || DiskParent == null)
+        {
+            Debug.LogError("DiskPrefab or DiskParent is not assigned.");
+            return;
+        }
 
-        // Larger size means lower priority in stack (size 1 = smallest)
+        if (DiskSprites == null || DiskSprites.Length < count)
+        {
+            Debug.LogError("DiskSprites array does not contain enough sprites for selected disk count.");
+            return;
+        }
+
+        disks.Clear();
+
         for (int i = 0; i < count; i++)
         {
+            // Instantiate UI disk
             RectTransform rt = Instantiate(DiskPrefab, DiskParent);
             rt.name = $"Disk_{i + 1}";
+
+            // Make sure Disk script exists
             Disk disk = rt.GetComponent<Disk>();
-            if (disk == null) disk = rt.gameObject.AddComponent<Disk>();
-            int size = count - i; // largest disk gets largest size number
+            if (disk == null)
+                disk = rt.gameObject.AddComponent<Disk>();
+
+            // Disk size (largest gets highest number)
+            int size = count - i;
             disk.Initialize(size, this);
-            // scale width relative to size
-            float t = (float)size / count;
-            float minW = DiskPrefab.rect.width * 0.5f;
-            float maxW = DiskPrefab.rect.width;
-            float width = Mathf.Lerp(minW, maxW, t);
+
+            // Assign correct sprite
+            Image img = rt.GetComponent<Image>();
+            if (img != null)
+            {
+                int spriteIndex = size - 1;    // 0 = largest
+                img.sprite = DiskSprites[spriteIndex];
+                img.SetNativeSize();
+            }
+
+            // Optional: adjust width dynamically
+            float t = (float)size / (float)count;
+            float minWidth = DiskPrefab.rect.width * 0.5f;
+            float maxWidth = DiskPrefab.rect.width;
+            float width = Mathf.Lerp(minWidth, maxWidth, t);
+
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+
+            // Height from prefab or fallback
+            float height = rt.rect.height > 0 ? rt.rect.height : DiskHeight;
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+
+            // Add disk to list
             disks.Add(disk);
         }
     }
 
+
+    // -----------------------------
+    //      STACK DISKS ON PEG
+    // -----------------------------
     private void StackDisksOnPeg(int pegIndex)
     {
-        if (Pegs == null || Pegs.Length == 0) return;
         if (pegIndex < 0 || pegIndex >= Pegs.Length) pegIndex = 0;
 
-        // place largest at bottom (index 0 of disks is largest because created descending)
         disks.Sort((a, b) => b.Size.CompareTo(a.Size)); // largest first
         for (int i = 0; i < disks.Count; i++)
         {
@@ -77,9 +129,14 @@ public class HanoiGameManager : MonoBehaviour
         }
     }
 
+
+    // -----------------------------
+    //      MOVE DISK LOGIC
+    // -----------------------------
     public bool TryMoveDisk(Peg fromPeg, Peg toPeg)
     {
         if (fromPeg == null || toPeg == null) return false;
+
         Disk moving = fromPeg.Peek();
         if (moving == null) return false;
 
@@ -94,28 +151,26 @@ public class HanoiGameManager : MonoBehaviour
         return true;
     }
 
+
+    // -----------------------------
+    //      CHECK WIN CONDITION
+    // -----------------------------
     private void CheckWinCondition()
     {
-        // standard win: all disks on last peg
         Peg finalPeg = Pegs[Pegs.Length - 1];
+
         if (finalPeg.Count == disks.Count)
         {
             HanoiUIManager.Instance?.OnWin();
         }
     }
 
-    // Public helpers for UI
+
+    // -----------------------------
+    //      RESTART HELPER
+    // -----------------------------
     public void Restart()
     {
         InitializeGame();
-    }
-
-    public Peg GetPegByTransform(Transform t)
-    {
-        foreach (var p in Pegs)
-        {
-            if (p != null && p.transform == t) return p;
-        }
-        return null;
     }
 }
