@@ -33,6 +33,7 @@ public class Peg : MonoBehaviour
         stack.Add(disk);
         AttachDiskTransform(disk, stack.Count - 1, diskHeight);
         disk.CurrentPeg = this;
+        disk.OnPlacedByPeg();
     }
 
     // Used for initial stacking where we place from bottom up
@@ -44,6 +45,7 @@ public class Peg : MonoBehaviour
         // After insertion, reposition all disks to match ordering
         RepositionAll(diskHeight);
         disk.CurrentPeg = this;
+        disk.OnPlacedByPeg();
     }
 
     private void RepositionAll(float diskHeight)

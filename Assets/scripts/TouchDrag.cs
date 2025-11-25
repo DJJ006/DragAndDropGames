@@ -17,6 +17,13 @@ public class TouchDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     private GraphicRaycaster raycaster;
     private EventSystem eventSystem;
 
+    // World-space offset between pointer and object when dragging
+    private Vector3 dragOffsetWorld;
+    private Camera uiCamera;
+
+    // whether this disk is allowed to be dragged (top of its peg)
+    private bool canDrag = false;
+
     void Awake()
     {
         rect = GetComponent<RectTransform>();
@@ -26,43 +33,83 @@ public class TouchDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         eventSystem = EventSystem.current;
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
+
+        if (canvas != null)
+            uiCamera = canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : canvas.worldCamera; // worldCamera may be null for Overlay - handled later
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
         // required to receive drag events on Android reliably
+        // Determine whether this disk is the top disk on its peg so we can prevent dragging lower disks.
+        originalParent = rect.parent;
+        originPeg = originalParent != null ? originalParent.GetComponent<Peg>() : null;
+        Disk thisDisk = GetComponent<Disk>();
+        canDrag = originPeg == null || originPeg.Peek() == thisDisk;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        originalParent = rect.parent;
-        originalPos = rect.anchoredPosition;
-        originPeg = originalParent != null ? originalParent.GetComponent<Peg>() : null;
+        // Ensure we have peg info even if OnPointerDown wasn't called
+        if (originalParent == null)
+            originalParent = rect.parent;
+        if (originPeg == null)
+            originPeg = originalParent != null ? originalParent.GetComponent<Peg>() : null;
 
-        // Only allow dragging if this disk is the top of the peg
-        if (originPeg != null)
+        // Fallback compute if needed
+        if (!canDrag)
         {
             Disk thisDisk = GetComponent<Disk>();
-            if (originPeg.Peek() != thisDisk)
-            {
-                // Cancel drag by marking canvasGroup blocksRaycasts false briefly
-                canvasGroup.blocksRaycasts = true;
-                return;
-            }
+            canDrag = originPeg == null || originPeg.Peek() == thisDisk;
         }
 
-        // lift to top
-        rect.SetParent(canvas.transform, worldPositionStays: false);
+        if (!canDrag)
+        {
+            // Not allowed to drag disks below others
+            canvasGroup.blocksRaycasts = true;
+            return;
+        }
+
+        originalPos = rect.anchoredPosition;
+
+        // bring near top of hierarchy so it renders over others
+        if (canvas != null)
+        {
+            rect.SetParent(canvas.transform, worldPositionStays: true);
+            int lastIndex = canvas.transform.childCount - 1;
+            int position = Mathf.Max(0, lastIndex - 1);
+            rect.SetSiblingIndex(position);
+        }
+
         canvasGroup.blocksRaycasts = false;
         canvasGroup.alpha = 0.9f;
+
+        // compute world-space offset between pointer and object so it follows grab point
+        Vector3 pointerWorld;
+        if (ScreenPointToWorld(eventData.position, out pointerWorld))
+        {
+            dragOffsetWorld = rect.position - pointerWorld;
+        }
+        else
+        {
+            dragOffsetWorld = Vector3.zero;
+        }
     }
 
     public void OnDrag(PointerEventData eventData)
     {
         if (canvas == null) return;
-        Vector2 pos;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)canvas.transform, eventData.position, eventData.pressEventCamera, out pos);
-        rect.anchoredPosition = pos;
+
+        if (!canDrag) return;
+
+        Vector3 pointerWorld;
+        if (!ScreenPointToWorld(eventData.position, out pointerWorld))
+            return;
+
+        Vector3 desired = pointerWorld + dragOffsetWorld;
+        // preserve original z
+        desired.z = rect.position.z;
+        rect.position = desired;
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -74,7 +121,7 @@ public class TouchDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         Peg targetPeg = RaycastForPeg(eventData);
         HanoiGameManager gm = FindObjectOfType<HanoiGameManager>();
 
-        if (originPeg != null && targetPeg != null && gm != null)
+        if (canDrag && originPeg != null && targetPeg != null && gm != null)
         {
             bool moved = gm.TryMoveDisk(originPeg, targetPeg);
             if (!moved)
@@ -83,6 +130,34 @@ public class TouchDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         else
         {
             ReturnToOrigin();
+        }
+
+        // reset canDrag (will be recalculated on next pointerdown)
+        canDrag = false;
+    }
+
+    private bool ScreenPointToWorld(Vector2 screenPoint, out Vector3 worldPoint)
+    {
+        worldPoint = Vector3.zero;
+        if (canvas == null)
+            return false;
+
+        RectTransform canvasRect = (RectTransform)canvas.transform;
+        // Support ScreenSpace-Overlay and Camera and World canvases
+        if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+        {
+            // Camera parameter should be null for overlay
+            return RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, screenPoint, null, out worldPoint);
+        }
+        else
+        {
+            Camera cam = uiCamera;
+            if (cam == null) // fallback to Camera.main
+                cam = Camera.main;
+            if (cam == null)
+                return false;
+
+            return RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, screenPoint, cam, out worldPoint);
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,6 +20,9 @@ public class HanoiGameManager : MonoBehaviour
 
     private List<Disk> disks = new List<Disk>();
 
+    // actual spacing used based on disk sizes to avoid overlap
+    private float actualDiskHeight;
+
     void Start()
     {
         InitializeGame();
@@ -32,7 +36,16 @@ public class HanoiGameManager : MonoBehaviour
     {
         ClearExisting();
         CreateDisks(DiskCount);
-        StackDisksOnPeg(0);
+
+        if (autoShuffleStart)
+        {
+            StackRandomOnLeft();
+        }
+        else
+        {
+            StackDisksOnPeg(0);
+        }
+
         HanoiUIManager.Instance?.ResetUI();
     }
 
@@ -73,6 +86,8 @@ public class HanoiGameManager : MonoBehaviour
 
         disks.Clear();
 
+        float maxHeight = 0f;
+
         for (int i = 0; i < count; i++)
         {
             // Instantiate UI disk
@@ -109,9 +124,15 @@ public class HanoiGameManager : MonoBehaviour
             float height = rt.rect.height > 0 ? rt.rect.height : DiskHeight;
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
 
+            // track maximum height for spacing
+            if (height > maxHeight) maxHeight = height;
+
             // Add disk to list
             disks.Add(disk);
         }
+
+        // Ensure spacing at least as large as the tallest disk to avoid visual overlap
+        actualDiskHeight = Mathf.Max(DiskHeight, maxHeight);
     }
 
 
@@ -125,7 +146,32 @@ public class HanoiGameManager : MonoBehaviour
         disks.Sort((a, b) => b.Size.CompareTo(a.Size)); // largest first
         for (int i = 0; i < disks.Count; i++)
         {
-            Pegs[pegIndex].PlaceAtBottom(disks[i], i, DiskHeight);
+            Pegs[pegIndex].PlaceAtBottom(disks[i], i, actualDiskHeight);
+        }
+    }
+
+    // stack disks in a random order on the left peg (peg0)
+    private void StackRandomOnLeft()
+    {
+        if (Pegs == null || Pegs.Length == 0) return;
+
+        // create a shuffled copy of disks
+        List<Disk> shuffled = new List<Disk>(disks);
+        int n = shuffled.Count;
+        System.Random rnd = new System.Random();
+        for (int i = 0; i < n; i++)
+        {
+            int j = rnd.Next(i, n);
+            var tmp = shuffled[i];
+            shuffled[i] = shuffled[j];
+            shuffled[j] = tmp;
+        }
+
+        // place shuffled disks on left peg in order bottom->top using PlaceAtTop
+        Peg left = Pegs[0];
+        for (int i = 0; i < shuffled.Count; i++)
+        {
+            left.PlaceAtTop(shuffled[i], left.Count, actualDiskHeight);
         }
     }
 
@@ -144,7 +190,7 @@ public class HanoiGameManager : MonoBehaviour
 
         fromPeg.Pop();
         int newIndex = toPeg.Count;
-        toPeg.PlaceAtTop(moving, newIndex, DiskHeight);
+        toPeg.PlaceAtTop(moving, newIndex, actualDiskHeight);
 
         HanoiUIManager.Instance?.OnMoveMade();
         CheckWinCondition();
