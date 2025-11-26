@@ -24,6 +24,9 @@ public class HanoiUIManager : MonoBehaviour
     private float elapsed;
     private bool running;
 
+    // reference to rewarded ads to subscribe/unsubscribe
+    private RewardedAds _rewardedAds;
+
     void Awake()
     {
         if (Instance != null && Instance != this) Destroy(gameObject);
@@ -40,6 +43,21 @@ public class HanoiUIManager : MonoBehaviour
             RestartButton.onClick.AddListener(OnRestartClicked);
         if (MainMenuButton != null)
             MainMenuButton.onClick.AddListener(OnMainMenuClicked);
+
+        // Subscribe to rewarded ad event if available
+        _rewardedAds = FindObjectOfType<RewardedAds>();
+        if (_rewardedAds != null)
+        {
+            _rewardedAds.OnUserRewarded += HandleUserRewarded;
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (_rewardedAds != null)
+        {
+            _rewardedAds.OnUserRewarded -= HandleUserRewarded;
+        }
     }
 
     void Update()
@@ -66,6 +84,14 @@ public class HanoiUIManager : MonoBehaviour
     public void OnMoveMade()
     {
         moves++;
+        UpdateMovesText();
+    }
+
+    // Handler invoked when user earns reward from rewarded ad
+    private void HandleUserRewarded()
+    {
+        // Remove up to 5 moves, but not below zero
+        moves = Mathf.Max(0, moves - 5);
         UpdateMovesText();
     }
 

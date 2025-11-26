@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Advertisements;
@@ -10,6 +11,8 @@ public class RewardedAds : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsShowLi
 
     [SerializeField] Button _rewardedAdButton;
     public FlyingObjectManager flayingObjectManager;
+
+    public event Action OnUserRewarded;
 
 
     private void Awake()
@@ -72,14 +75,25 @@ public class RewardedAds : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsShowLi
 
     public void OnUnityAdsShowComplete(string placementId, UnityAdsShowCompletionState showCompletionState)
     {
+        // Only reward when ad was fully watched
+        if (placementId.Equals(_adUnitId) && showCompletionState == UnityAdsShowCompletionState.COMPLETED)
+        {
+            Debug.Log("Rewarded ad completed!");
 
-        //if (placementId.Equals(_adUnitId) &&
-        //  showCompletionState.Equals(UnityAdsCompletionState.COMPLETED)) {
-        Debug.Log("Rewarded ad completed!");
-        flayingObjectManager.DestroyAllFlyingObjects();
-        _rewardedAdButton.interactable = false;
-        StartCoroutine(WaitAndLoad(10f));
-        // }
+            // Reward listeners (e.g., Hanoi game)
+            OnUserRewarded?.Invoke();
+
+            // Existing behavior for flying objects if present
+            if (flayingObjectManager != null)
+                flayingObjectManager.DestroyAllFlyingObjects();
+
+            _rewardedAdButton.interactable = false;
+            StartCoroutine(WaitAndLoad(10f));
+        }
+        else
+        {
+            Debug.Log("Rewarded ad skipped or not completed.");
+        }
 
         Time.timeScale = 1f;
     }

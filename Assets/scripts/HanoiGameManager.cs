@@ -18,10 +18,30 @@ public class HanoiGameManager : MonoBehaviour
     [Header("Gameplay")]
     public bool autoShuffleStart = false;  // optional random start
 
+    [Header("Audio")]
+    public AudioClip PlaceSound; // sound when a disk is placed on a peg
+    public AudioClip WinSound; // sound when the player wins
+    [Range(0f,1f)]
+    public float sfxVolume =1f;
+
+    private AudioSource audioSource;
+
     private List<Disk> disks = new List<Disk>();
 
     // actual spacing used based on disk sizes to avoid overlap
     private float actualDiskHeight;
+
+    void Awake()
+    {
+        // ensure we have an AudioSource to play SFX
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
+        // keep AudioSource settings minimal for one-shot SFX
+        audioSource.playOnAwake = false;
+        audioSource.loop = false;
+    }
 
     void Start()
     {
@@ -192,6 +212,9 @@ public class HanoiGameManager : MonoBehaviour
         int newIndex = toPeg.Count;
         toPeg.PlaceAtTop(moving, newIndex, actualDiskHeight);
 
+        // play place sound when a disk is successfully placed
+        PlayClip(PlaceSound);
+
         HanoiUIManager.Instance?.OnMoveMade();
         CheckWinCondition();
         return true;
@@ -207,6 +230,9 @@ public class HanoiGameManager : MonoBehaviour
 
         if (finalPeg.Count == disks.Count)
         {
+            // play win sound
+            PlayClip(WinSound);
+
             HanoiUIManager.Instance?.OnWin();
         }
     }
@@ -218,5 +244,26 @@ public class HanoiGameManager : MonoBehaviour
     public void Restart()
     {
         InitializeGame();
+    }
+
+    // -----------------------------
+    // AUDIO HELPERS
+    // -----------------------------
+    private void PlayClip(AudioClip clip)
+    {
+        if (clip == null) return;
+
+        if (audioSource != null)
+        {
+            audioSource.PlayOneShot(clip, sfxVolume);
+        }
+        else
+        {
+            // fallback to PlayClipAtPoint if AudioSource isn't available
+            if (Camera.main != null)
+                AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position, sfxVolume);
+            else
+                AudioSource.PlayClipAtPoint(clip, Vector3.zero, sfxVolume);
+        }
     }
 }

@@ -1061,10 +1061,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   adsInitializer: {fileID: 298784568}
   interstitialAd: {fileID: 298784567}
-  turnOffInterstitialAd: 1
+  turnOffInterstitialAd: 0
   rewardedAds: {fileID: 298784571}
-  turnOffRewardedAds: 1
-  bannerAd: {fileID: 0}
+  turnOffRewardedAds: 0
+  bannerAd: {fileID: 298784573}
   turnOffBannerAd: 0
 --- !u!4 &298784570
 Transform:
@@ -5310,7 +5310,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1660225737
 RectTransform:
   m_ObjectHideFlags: 0

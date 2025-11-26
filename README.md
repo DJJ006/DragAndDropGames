@@ -17,10 +17,13 @@ Unity 2D Drag And Drop games for children. Spēle izstrādāta Unity ar mērķi 
 - [x] Create main menu
 - [x] Change target platform to Android
 - [x] Replace all mouse input with touch
-- [ ] Add interstitial ad
-- [ ] Add rewarded ad
-- [ ] Add banner ad  
+- [x] Add interstitial ad
+- [x] Add rewarded ad
+- [x] Add banner ad
+- [x] Make HanoiTower game    
 ---
+
+# 🏰 DragAndDrop - Windows un Android
 
 ## 🎮 Spēles apraksts
 - Novieto transportlīdzekļus pareizajās “Drop Zones”.
@@ -44,6 +47,41 @@ Unity 2D Drag And Drop games for children. Spēle izstrādāta Unity ar mērķi 
 - Velc un nomet transportlīdzekļus uz drop zonām.
 - Laiks tiek rādīts ekrāna augšējā daļā.
 - Spēle automātiski parāda uzvaras vai zaudējuma paneli.
+
+
+
+# 🏰 Hanoi Tower – Android
+
+## 🎮 Spēles apraksts
+Klasiska Hanojas torņa spēle 2D Android ierīcēm.
+
+**Mērķis:** pārvietot visus diskus no kreisā pega uz labā pega, saglabājot pareizo secību (lielākais apakšā, mazākais augšā).
+
+**Spēles noteikumi:**
+- Vienlaikus drīkst pārvietot tikai vienu disku.
+- Nedrīkst likt lielāku disku uz mazāka.
+- Laiks un gājieni tiek skaitīti ekrānā.
+- Uzvara tiek piešķirta, kad visi diski ir pārvietoti uz pēdējo peg, saglabājot secību.
+- Diski ir fiziski: tos var pacelt, nomest, un tie krīt uz pegiem.
+- Opcija: katras spēles sākumā diski var tikt sakārtoti nejaušā secībā, lai palielinātu izaicinājumu.
+
+---
+
+## 💻 Instalācija un palaišana
+1. Lejupielādē **HanoiTower.apk** no [GitHub Releases](#).  
+2. Instalē Android ierīcē (atļauj instalēt no nezināmiem avotiem, ja nepieciešams).  
+3. Atver spēli — tā automātiski ielādēs pirmo līmeni.
+
+---
+
+## 🔧 Spēles vadība
+- Velc un nomet diskus uz citiem pegiem.  
+- Diski fiziski krīt un nostājas virs peg, ja pārvietošana ir atļauta.  
+- Ekrānā tiek rādīts:
+  - **Moves** – izdarīto gājienu skaits.  
+  - **Timer** – spēlē pavadītais laiks.  
+- Kad spēle pabeigta, parādās **Win panelis** ar uzvaras ziņojumu.  
+- **Restart** poga ļauj sākt spēli no jauna.
 
 ---
 

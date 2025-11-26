@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Advertisements;
 using UnityEngine.UI;
@@ -12,10 +13,37 @@ public class BannerAd : MonoBehaviour
 
     [SerializeField] BannerPosition _bannerPosition = BannerPosition.BOTTOM_CENTER;
 
+    // Singleton so banner persists across scenes and we don't create duplicates
+    public static BannerAd Instance { get; private set; }
+
     private void Awake()
     {
+        // simple singleton pattern
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
         _adUnitId = _androidAdUnitId;
         Advertisement.Banner.SetPosition(_bannerPosition);
+
+        // Start the automatic banner lifecycle
+        StartCoroutine(InitAndShowBanner());
+    }
+
+    private IEnumerator InitAndShowBanner()
+    {
+        // Wait until Unity Ads is initialized, then load banner
+        while (!Advertisement.isInitialized)
+        {
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        LoadBanner();
     }
 
     public void LoadBanner()
@@ -39,21 +67,32 @@ public class BannerAd : MonoBehaviour
     void OnBannerLoaded()
     {
         Debug.Log("Banner ad loaded!");
-        _bannerButton.interactable = true;
+        if (_bannerButton != null)
+            _bannerButton.interactable = true;
+
+        // Automatically show banner when loaded
+        ForceShowBanner();
     }
 
     void OnBannerError(string message)
     {
         Debug.LogWarning("Banner Error: " + message);
+        // small retry delay to avoid tight loop
+        StartCoroutine(RetryLoadBanner());
+    }
+
+    private IEnumerator RetryLoadBanner()
+    {
+        yield return new WaitForSeconds(3f);
         LoadBanner();
     }
 
+    // Keep the existing toggle method for UI, but banner will already be shown automatically
     public void ShowBannerAd()
     {
         if (isBannerVisible)
         {
             HideBannerAd();
-
         }
         else
         {
@@ -71,6 +110,20 @@ public class BannerAd : MonoBehaviour
     public void HideBannerAd()
     {
         Advertisement.Banner.Hide();
+        isBannerVisible = false;
+    }
+
+    // New helper to force-show the banner (used by InterstitialAd to restore it)
+    public void ForceShowBanner()
+    {
+        BannerOptions options = new BannerOptions
+        {
+            clickCallback = OnBannerClicked,
+            hideCallback = OnBannerHidden,
+            showCallback = OnBannerShown
+        };
+
+        Advertisement.Banner.Show(_adUnitId, options);
     }
 
     void OnBannerClicked()

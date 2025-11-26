@@ -102,30 +102,43 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
             Debug.Log("Interstitial ad watched completely!");
             StartCoroutine(SlowDownTimeTemporarily(30f));
             LoadAd();
-
         }
         else
         {
             Debug.Log("Interstitial ad skipped or status ir unknown!");
             LoadAd();
+
+            // Restore time scale when ad is skipped or not completed.
+            if (Time.timeScale == 0f)
+            {
+                Time.timeScale = 1.0f;
+                Debug.Log("Time restored to normal after skipped/unknown interstitial.");
+            }
         }
     }
 
     private IEnumerator SlowDownTimeTemporarily(float seconds)
     {
+        // Use realtime wait so the coroutine progresses even if timeScale is 0.
         Time.timeScale = 0.4f;
-        Debug.Log("Time slowed down to 0.4x for " + seconds + " sec");
-        yield return new WaitForSeconds(seconds);
+        Debug.Log("Time slowed down to 0.4x for " + seconds + " sec (real-time)");
+        yield return new WaitForSecondsRealtime(seconds);
 
         Time.timeScale = 1.0f;
         Debug.Log("Time restored to normal!");
-
     }
 
     public void OnUnityAdsShowFailure(string placementId, UnityAdsShowError error, string message)
     {
         Debug.Log("Error showing interstitial ad!");
         LoadAd();
+
+        // Ensure time is restored if showing the ad failed while time was frozen.
+        if (Time.timeScale == 0f)
+        {
+            Time.timeScale = 1.0f;
+            Debug.Log("Time restored to normal after ad show failure.");
+        }
     }
 
     public void OnUnityAdsShowStart(string placementId)
