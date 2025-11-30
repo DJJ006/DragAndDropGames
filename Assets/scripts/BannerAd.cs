@@ -16,6 +16,9 @@ public class BannerAd : MonoBehaviour
     // Singleton so banner persists across scenes and we don't create duplicates
     public static BannerAd Instance { get; private set; }
 
+    // Track whether we have a loaded banner (OnBannerLoaded sets this).
+    private bool _bannerLoaded = false;
+
     private void Awake()
     {
         // simple singleton pattern
@@ -67,6 +70,8 @@ public class BannerAd : MonoBehaviour
     void OnBannerLoaded()
     {
         Debug.Log("Banner ad loaded!");
+        _bannerLoaded = true;
+
         if (_bannerButton != null)
             _bannerButton.interactable = true;
 
@@ -77,6 +82,7 @@ public class BannerAd : MonoBehaviour
     void OnBannerError(string message)
     {
         Debug.LogWarning("Banner Error: " + message);
+        _bannerLoaded = false;
         // small retry delay to avoid tight loop
         StartCoroutine(RetryLoadBanner());
     }
@@ -116,6 +122,15 @@ public class BannerAd : MonoBehaviour
     // New helper to force-show the banner (used by InterstitialAd to restore it)
     public void ForceShowBanner()
     {
+        // If not loaded yet, start load and wait; otherwise show immediately.
+        if (!_bannerLoaded)
+        {
+            Debug.Log("ForceShowBanner: banner not loaded yet, calling LoadBanner and waiting to show.");
+            LoadBanner();
+            StartCoroutine(ForceShowWhenLoaded());
+            return;
+        }
+
         BannerOptions options = new BannerOptions
         {
             clickCallback = OnBannerClicked,
@@ -124,6 +139,28 @@ public class BannerAd : MonoBehaviour
         };
 
         Advertisement.Banner.Show(_adUnitId, options);
+    }
+
+    private IEnumerator ForceShowWhenLoaded()
+    {
+        // Wait until banner reports loaded (OnBannerLoaded sets _bannerLoaded).
+        float timeout = 8f;
+        float elapsed = 0f;
+        while (!_bannerLoaded && elapsed < timeout)
+        {
+            yield return new WaitForSeconds(0.2f);
+            elapsed += 0.2f;
+        }
+
+        if (_bannerLoaded)
+        {
+            Debug.Log("ForceShowWhenLoaded: banner loaded, showing now.");
+            ForceShowBanner();
+        }
+        else
+        {
+            Debug.LogWarning("ForceShowWhenLoaded: banner failed to load within timeout.");
+        }
     }
 
     void OnBannerClicked()
@@ -152,5 +189,28 @@ public class BannerAd : MonoBehaviour
         button.onClick.AddListener(ShowBannerAd);
         _bannerButton = button;
         _bannerButton.interactable = false;
+    }
+
+    // Public helper to ensure the banner is visible (load & show if necessary).
+    public void EnsureBannerShown()
+    {
+        if (isBannerVisible)
+            return;
+
+        if (!Advertisement.isInitialized)
+        {
+            Debug.Log("EnsureBannerShown: Ads not initialized yet; banner will be shown after init.");
+            return;
+        }
+
+        if (_bannerLoaded)
+        {
+            ForceShowBanner();
+        }
+        else
+        {
+            LoadBanner();
+            StartCoroutine(ForceShowWhenLoaded());
+        }
     }
 }

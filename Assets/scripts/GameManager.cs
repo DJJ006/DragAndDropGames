@@ -25,9 +25,13 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // Defensive assignment: attempt to find panels if inspector not set.
+        EnsurePanelAssigned(ref WinPanel, new string[] { "WinPanel", "Win Panel", "Win_Panel" }, "WinPanel");
+        EnsurePanelAssigned(ref LosePanel, new string[] { "LosePanel", "Lose Panel", "Lose_Panel" }, "LosePanel");
+
         // Paslēpj Win/Lose panelus un zvaigznes
-        WinPanel.SetActive(false);
-        LosePanel.SetActive(false);
+        if (WinPanel != null) WinPanel.SetActive(false);
+        if (LosePanel != null) LosePanel.SetActive(false);
         if (TimerText != null) TimerText.gameObject.SetActive(false);
 
         if (Stars != null)
@@ -440,6 +444,78 @@ public class GameManager : MonoBehaviour
 
         // Place blocker behind panel visuals but still block raycasts for the full panel rect
         blocker.transform.SetAsFirstSibling();
+    }
+
+    // --- Helper: try to assign a panel; if not found create a simple one so code doesn't NRE.
+    private void EnsurePanelAssigned(ref GameObject panel, string[] candidateNames, string fieldName)
+    {
+        if (panel != null) return;
+
+        // try some common names
+        foreach (string name in candidateNames)
+        {
+            GameObject found = GameObject.Find(name);
+            if (found != null)
+            {
+                panel = found;
+                Debug.Log($"GameManager: auto-assigned {fieldName} from GameObject.Find(\"{name}\")");
+                return;
+            }
+        }
+
+        // try to find any object with a Canvas parent that contains "win" or "lose" in name
+        Canvas[] canvases = FindObjectsOfType<Canvas>();
+        foreach (Canvas c in canvases)
+        {
+            foreach (Transform child in c.transform)
+            {
+                if (child == null || child.name == null) continue;
+                string ln = child.name.ToLower();
+                if ((fieldName.ToLower().Contains("win") && ln.Contains("win")) ||
+                    (fieldName.ToLower().Contains("lose") && ln.Contains("lose")))
+                {
+                    panel = child.gameObject;
+                    Debug.Log($"GameManager: auto-assigned {fieldName} from Canvas child \"{child.name}\"");
+                    return;
+                }
+            }
+        }
+
+        // fallback: create a minimal panel so code can continue (invisible by default)
+        panel = CreateAutoPanel(fieldName + "_Auto");
+        Debug.LogWarning($"GameManager: {fieldName} was not assigned in Inspector. Created fallback panel \"{panel.name}\". Prefer assigning a proper UI panel in the Inspector.");
+    }
+
+    private GameObject CreateAutoPanel(string name)
+    {
+        GameObject panel = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        Image img = panel.GetComponent<Image>();
+        img.color = new Color(0f, 0f, 0f, 0f); // transparent default
+        RectTransform rt = panel.GetComponent<RectTransform>();
+
+        // parent to an existing Canvas if available
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas != null)
+        {
+            rt.SetParent(canvas.transform, false);
+        }
+        else
+        {
+            // If no Canvas, create one so UI is visible if needed
+            GameObject canvasGO = new GameObject("Canvas_Auto", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            Canvas c = canvasGO.GetComponent<Canvas>();
+            c.renderMode = RenderMode.ScreenSpaceOverlay;
+            rt.SetParent(canvasGO.transform, false);
+        }
+
+        // make it stretch full
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        panel.SetActive(false);
+        return panel;
     }
 
 }

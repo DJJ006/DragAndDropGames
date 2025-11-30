@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Advertisements;
 
 public class AdManager : MonoBehaviour
 {
@@ -141,6 +142,12 @@ public class AdManager : MonoBehaviour
         if (bannerAd != null && bannerButton != null)
         {
             bannerAd.SetButton(bannerButton);
+        }
+
+        // Ensure the banner is shown in the newly loaded scene (will load if necessary)
+        if (!turnOffBannerAd && bannerAd != null)
+        {
+            bannerAd.EnsureBannerShown();
         }
 
         Debug.Log("Scene loaded!");

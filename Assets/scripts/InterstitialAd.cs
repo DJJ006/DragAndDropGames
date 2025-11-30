@@ -13,6 +13,9 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
     public bool isReady = false;
     [SerializeField] Button _interstitialAdButton;
 
+    // Track whether a banner was visible before showing the interstitial so we can restore it.
+    private bool _bannerWasVisible = false;
+
     void Awake()
     {
         _adUnitId = _androidAdUnitId;
@@ -20,7 +23,8 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
 
     private void Update()
     {
-        if (AdManager.Instance != null && AdManager.Instance.interstitialAd != null)
+        // Only update the button if it exists; avoid depending on AdManager instance here.
+        if (_interstitialAdButton != null)
         {
             _interstitialAdButton.interactable = isReady;
         }
@@ -49,6 +53,12 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
         if (isReady)
         {
             // Hide banner ad on interstitial ad show...
+            if (BannerAd.Instance != null)
+            {
+                _bannerWasVisible = BannerAd.Instance.isBannerVisible;
+                if (_bannerWasVisible)
+                    BannerAd.Instance.HideBannerAd();
+            }
 
             Advertisement.Show(_adUnitId, this);
             isReady = false;
@@ -63,11 +73,10 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
 
     public void ShowInterstitial()
     {
-        if (AdManager.Instance.interstitialAd != null && isReady)
+        if (AdManager.Instance != null && AdManager.Instance.interstitialAd != null && isReady)
         {
             Debug.Log("Showing interstitial ad manually!");
             ShowAd();
-
         }
         else
         {
@@ -79,15 +88,31 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
     public void OnUnityAdsAdLoaded(string placementId)
     {
         Debug.Log("Interstitial ad loaded!");
-        _interstitialAdButton.interactable = true;
         isReady = true;
+        if (_interstitialAdButton != null)
+            _interstitialAdButton.interactable = true;
         OnInterstitialAdReady?.Invoke();
     }
 
     public void OnUnityAdsFailedToLoad(string placementId, UnityAdsLoadError error, string message)
     {
-        Debug.LogWarning("Failed to load interstitial ad!");
-        LoadAd();
+        Debug.LogWarning($"Failed to load interstitial ad: {error} - {message}");
+        // Retry with a short delay to avoid immediate recursion / spamming loads
+        StartCoroutine(RetryLoadWithDelay(5f));
+    }
+
+    private IEnumerator RetryLoadWithDelay(float seconds)
+    {
+        yield return new WaitForSecondsRealtime(seconds);
+        if (Advertisement.isInitialized)
+        {
+            Debug.Log("Retrying interstitial ad load...");
+            Advertisement.Load(_adUnitId, this);
+        }
+        else
+        {
+            Debug.LogWarning("Advertisement not initialized yet; skipping retry.");
+        }
     }
 
     public void OnUnityAdsShowClick(string placementId)
@@ -115,6 +140,13 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
                 Debug.Log("Time restored to normal after skipped/unknown interstitial.");
             }
         }
+
+        // Restore banner if it was visible before the interstitial
+        if (_bannerWasVisible && BannerAd.Instance != null)
+        {
+            BannerAd.Instance.ForceShowBanner();
+            _bannerWasVisible = false;
+        }
     }
 
     private IEnumerator SlowDownTimeTemporarily(float seconds)
@@ -131,13 +163,20 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
     public void OnUnityAdsShowFailure(string placementId, UnityAdsShowError error, string message)
     {
         Debug.Log("Error showing interstitial ad!");
-        LoadAd();
+        StartCoroutine(RetryLoadWithDelay(5f));
 
         // Ensure time is restored if showing the ad failed while time was frozen.
         if (Time.timeScale == 0f)
         {
             Time.timeScale = 1.0f;
             Debug.Log("Time restored to normal after ad show failure.");
+        }
+
+        // Restore banner if it was visible before the attempt
+        if (_bannerWasVisible && BannerAd.Instance != null)
+        {
+            BannerAd.Instance.ForceShowBanner();
+            _bannerWasVisible = false;
         }
     }
 

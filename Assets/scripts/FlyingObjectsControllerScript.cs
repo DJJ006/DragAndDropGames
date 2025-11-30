@@ -30,18 +30,22 @@ public class FlyingObjectsControllerScript : MonoBehaviour
         rectTransform = GetComponent<RectTransform>();
 
         image = GetComponent<Image>();
-        originalColor = image.color;
+        if (image != null)
+            originalColor = image.color;
         objectScript = FindFirstObjectByType<ObjectScript>();
         scrreenBoundriesScript = FindFirstObjectByType<ScreenBoundriesScript>();
         StartCoroutine(FadeIn());
     }
 
-    // Safe wrapper for CompareTag to avoid UnityException when a tag is not defined
+    // Safe wrapper for tag checks without calling CompareTag (CompareTag throws when the tag
+    // parameter is not defined in the project's Tag Manager). Use string compare to avoid the exception.
     private bool HasTag(string tagName)
     {
+        if (string.IsNullOrEmpty(tagName) || gameObject == null) return false;
         try
         {
-            return CompareTag(tagName);
+            // Compare tag strings case-insensitively to accept "Bomb" and "bomb"
+            return string.Equals(gameObject.tag, tagName, System.StringComparison.OrdinalIgnoreCase);
         }
         catch (System.Exception ex)
         {
@@ -53,10 +57,10 @@ public class FlyingObjectsControllerScript : MonoBehaviour
     // Overload for GameObject to check tags safely
     private bool HasTag(GameObject go, string tagName)
     {
-        if (go == null) return false;
+        if (go == null || string.IsNullOrEmpty(tagName)) return false;
         try
         {
-            return go.CompareTag(tagName);
+            return string.Equals(go.tag, tagName, System.StringComparison.OrdinalIgnoreCase);
         }
         catch (System.Exception ex)
         {
@@ -68,16 +72,22 @@ public class FlyingObjectsControllerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // defensive: ensure required components exist
+        if (rectTransform == null) rectTransform = GetComponent<RectTransform>();
+        if (scrreenBoundriesScript == null) scrreenBoundriesScript = FindFirstObjectByType<ScreenBoundriesScript>();
+        if (image == null) image = GetComponent<Image>();
+
+        if (rectTransform == null || scrreenBoundriesScript == null) return;
+
         float waveOffset = Mathf.Sin(Time.time * waveFrequency) * waveAmplitude;
         rectTransform.anchoredPosition += new Vector2(-speed * Time.deltaTime, waveOffset * Time.deltaTime);
-        // <-
+
         if (speed > 0 && transform.position.x < (scrreenBoundriesScript.minX + 80) && !isFadingOut)
         {
             StartCoroutine(FadeOutAndDestroy());
             isFadingOut = true;
         }
 
-        // =>
         if (speed < 0 && transform.position.x > (scrreenBoundriesScript.maxX - 80) && !isFadingOut)
         {
             StartCoroutine(FadeOutAndDestroy());
@@ -94,7 +104,7 @@ public class FlyingObjectsControllerScript : MonoBehaviour
             Input.GetMouseButtonDown(0) &&
             RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition, hitCamera))
         {
-            // Avoid accessing the 'tag' property directly (it can throw); use a safe read.
+            // Avoid accessing the 'tag' property directly in a way that would throw; we already used safe compare.
             string safeTag;
             try { safeTag = tag; } catch { safeTag = "<undefined>"; }
 
@@ -103,7 +113,6 @@ public class FlyingObjectsControllerScript : MonoBehaviour
         }
 
         // Caurskatīt no šejienes
-
         if (ObjectScript.drag && !isFadingOut &&
             RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition, Camera.main))
         {
@@ -116,26 +125,27 @@ public class FlyingObjectsControllerScript : MonoBehaviour
                 ObjectScript.drag = false;
             }
 
-            if (HasTag("bomb"))
-                StartToDestroy(Color.cyan);
-            else
-                StartToDestroy(Color.cyan);
-
+            // uniform behavior for bombs and others
+            StartToDestroy(Color.cyan);
         }
     }
 
     public void TriggerExplosion()
     {
         isExploading = true;
-        objectScript.effects.PlayOneShot(objectScript.audioCli[6], 5f);
+        if (objectScript != null && objectScript.effects != null)
+            objectScript.effects.PlayOneShot(objectScript.audioCli[6], 5f);
 
         if (TryGetComponent<Animator>(out Animator animator))
         {
             animator.SetBool("explode", true);
         }
 
-        image.color = Color.red;
-        StartCoroutine(RecoverColor(0.4f));
+        if (image != null)
+        {
+            image.color = Color.red;
+            StartCoroutine(RecoverColor(0.4f));
+        }
 
         StartCoroutine(Vibrate());
         StartCoroutine(WaitBeforeExpload());
@@ -185,10 +195,14 @@ public class FlyingObjectsControllerScript : MonoBehaviour
             StartCoroutine(FadeOutAndDestroy());
             isFadingOut = true;
 
-            image.color = Color.cyan;
-            StartCoroutine(RecoverColor(0.5f));
+            if (image != null)
+            {
+                image.color = Color.cyan;
+                StartCoroutine(RecoverColor(0.5f));
+            }
 
-            objectScript.effects.PlayOneShot(objectScript.audioCli[5]);
+            if (objectScript != null && objectScript.effects != null)
+                objectScript.effects.PlayOneShot(objectScript.audioCli[5]);
 
             StartCoroutine(Vibrate());
         }
@@ -259,7 +273,8 @@ public class FlyingObjectsControllerScript : MonoBehaviour
             HasTag(target, "e46") || HasTag(target, "e61") || HasTag(target, "WorkCar") ||
             HasTag(target, "Police") || HasTag(target, "Tractor") || HasTag(target, "Tractor2"))
         {
-            FindObjectOfType<GameManager>().OnVehicleDestroyed(target);
+            var gm = FindObjectOfType<GameManager>();
+            if (gm != null) gm.OnVehicleDestroyed(target);
         }
 
         Destroy(target);
@@ -269,7 +284,8 @@ public class FlyingObjectsControllerScript : MonoBehaviour
     IEnumerator RecoverColor(float seconds)
     {
         yield return new WaitForSeconds(seconds);
-        image.color = originalColor;
+        if (image != null)
+            image.color = originalColor;
     }
 
 
